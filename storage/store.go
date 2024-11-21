@@ -1,37 +1,40 @@
 package storage
 
 import (
+	"context"
 	"errors"
 	"golang.org/x/crypto/bcrypt"
 	"log/slog"
 )
 
 type Database interface {
-	AddNewUser(u User) error
-	Del(id string) error
-	All() []User
-	Authentication(u User) error
+	AddNewUser(ctx context.Context, u User) error
+	DeleteUser(ctx context.Context, id string) error
+	All(ctx context.Context) ([]User, error)
+	Authentication(ctx context.Context, u User) error
 }
 
 type User struct {
-	Login    string `json:"Login"`
-	Password string `json:"Password"`
+	Login    string `json:"Login" bson:"login"`
+	Password string `json:"Password" bson:"password"`
 }
 
-func (u *User) hash() ([]byte, error) {
+// TODO auth  отнести к юзеру а в базе возвращать данные пользователя
+
+func (u *User) hash() (string, error) {
 	passHash, err := bcrypt.GenerateFromPassword([]byte(u.Password), bcrypt.DefaultCost)
 	if err != nil {
 		slog.Error("failed to generate password hash", err)
-		return []byte{}, err
+		return "", err
 	}
-	return passHash, nil
+	return string(passHash), nil
 }
 
 type DataBase struct {
-	Data map[string][]byte
+	Data map[string]string
 }
 
-// возможно переделать или убрать вообшще, в Authentication она не используется
+// TODO возможно переделать или убрать вообшще, в Authentication она не используется
 func (d *DataBase) compareLogin(loginNewUser string) error {
 	for login := range d.Data {
 		if login == loginNewUser {
@@ -41,7 +44,7 @@ func (d *DataBase) compareLogin(loginNewUser string) error {
 	return nil
 }
 
-func (d *DataBase) AddNewUser(u User) error {
+func (d *DataBase) AddNewUser(ctx context.Context, u User) error {
 	if err := d.compareLogin(u.Login); err != nil {
 		return err
 	}
@@ -53,18 +56,18 @@ func (d *DataBase) AddNewUser(u User) error {
 	return nil
 }
 
-func (d *DataBase) Authentication(u User) error {
+func (d *DataBase) Authentication(ctx context.Context, u User) error {
 	if _, ok := d.Data[u.Login]; !ok {
 		return errors.New("user not found")
 	}
-	if err := bcrypt.CompareHashAndPassword(d.Data[u.Login], []byte(u.Password)); err != nil {
+	if err := bcrypt.CompareHashAndPassword([]byte(d.Data[u.Login]), []byte(u.Password)); err != nil {
 		return errors.New("invalid password")
 	}
 
 	return nil
 }
 
-func (d *DataBase) Del(id string) error {
+func (d *DataBase) DeleteUser(ctx context.Context, id string) error {
 	if _, ok := d.Data[id]; !ok {
 		return errors.New("user not found")
 	}
@@ -72,10 +75,10 @@ func (d *DataBase) Del(id string) error {
 	return nil
 }
 
-func (d *DataBase) All() []User {
+func (d *DataBase) All(ctx context.Context) ([]User, error) {
 	var u []User
 	for login, password := range d.Data {
 		u = append(u, User{login, string(password)})
 	}
-	return u
+	return u, nil
 }

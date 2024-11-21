@@ -1,24 +1,15 @@
 package api
 
 import (
-	"context"
 	"encoding/json"
-	"fmt"
-	"github.com/google/uuid"
-	"github.com/sawoklybimecpubliki/fistoli/filestorage"
-	"github.com/sawoklybimecpubliki/fistoli/storage"
-	"github.com/sawoklybimecpubliki/fistoli/storage/file_dao"
-	"github.com/sawoklybimecpubliki/fistoli/storage/session"
 	"io"
 	"log"
 	"net/http"
+	"service/storage"
 )
 
 type Handler struct {
-	Users        storage.Database
-	FilesStorage filestorage.Service
-	Sessions     session.Session
-	FilesData    file_dao.FileDAO
+	D storage.Database
 }
 
 func (h *Handler) Registration(w http.ResponseWriter, r *http.Request) {
@@ -37,7 +28,7 @@ func (h *Handler) Registration(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 	}
 
-	if err := h.Users.AddNewUser(context.Background(), u); err != nil {
+	if err := h.D.AddNewUser(u); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 	} else {
 		answer, _ := json.Marshal("New user was add in database")
@@ -48,8 +39,8 @@ func (h *Handler) Registration(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) ShowAll(w http.ResponseWriter, r *http.Request) {
 	var u []storage.User
 
-	u, _ = h.Users.All(context.Background())
-	log.Println("show all: ", u)
+	u = h.D.All()
+
 	if u == nil {
 		answer, err := json.Marshal("users not found")
 		if err != nil {
@@ -69,7 +60,7 @@ func (h *Handler) ShowAll(w http.ResponseWriter, r *http.Request) {
 
 func (h *Handler) GetAnswer(w http.ResponseWriter, r *http.Request) {
 	answer, err := json.Marshal("Vse rabotaet, vot otvet")
-	log.Println(r.URL.Query().Get("id"))
+
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -88,4 +79,22 @@ func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {
 	var u storage.User
 	err = json.Unmarshal(s, &u)
 
-	if err != nil
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+	}
+	if err := h.D.Authentication(u); err != nil {
+		answer, _ := json.Marshal(err.Error())
+		w.Write(answer)
+	} else {
+		answer, _ := json.Marshal("Successful login")
+		w.Write(answer)
+	}
+}
+
+func (h *Handler) Mux(mux *http.ServeMux) {
+
+	mux.HandleFunc("GET /users", h.ShowAll)
+	mux.HandleFunc("GET /answer", h.GetAnswer)
+	mux.HandleFunc("POST /registration", h.Registration)
+	mux.HandleFunc("GET /login", h.Login)
+}
