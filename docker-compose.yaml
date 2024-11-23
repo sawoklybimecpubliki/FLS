@@ -1,0 +1,19 @@
+services:
+  app:
+    build: .
+    ports:
+      - "80:80"
+    networks:
+      - backend
+    environment:
+      - FISTOLI_MONGO_HOST="mongodb"
+      - FISTOLI_REDIS_ADDR="redis"
+      - FISTOLI_MONGO_PATH="/app/storage/file_storage"
+    depends_on:
+      - mongodb
+      - sessions
+
+  mongodb:
+    image: mongo:latest
+    restart: always
+    ports:

@@ -17,14 +17,16 @@ type Config struct {
 	DBName         string
 }
 
-// TODO отдельная функция run
-
 func main() {
+	if err := run(); err != nil {
+		log.Fatal(err)
+	}
+}
 
+func run() error {
 	client, err := mongo.Connect(context.Background(), options.Client().ApplyURI("mongodb://mongodb:27017"))
 	if err != nil {
-		log.Println("Error connection to mongodb")
-		return
+		return err
 	}
 
 	defer func() {
@@ -42,10 +44,6 @@ func main() {
 	hand.Mux(router)
 
 	log.Println("server start listening on :80")
-	err = http.ListenAndServe(":80", router)
 
-	if err != nil {
-		log.Fatal("ListenAndServe: ", err)
-	}
-
+	return http.ListenAndServe(":80", router)
 }
