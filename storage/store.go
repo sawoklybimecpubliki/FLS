@@ -7,6 +7,7 @@ import (
 	"github.com/google/uuid"
 	"golang.org/x/crypto/bcrypt"
 	"log/slog"
+	"mime/multipart"
 )
 
 type Database interface {
@@ -16,11 +17,18 @@ type Database interface {
 	Authentication(ctx context.Context, u User) (string, error)
 }
 
+type FileStorage interface {
+	UploadFile(ctx context.Context, file multipart.File, head *multipart.FileHeader, id string) error
+	DeleteFile(ctx context.Context, id int) error
+}
+
 type User struct {
 	Login     string    `json:"Login" bson:"login"`
 	Password  string    `json:"Password" bson:"password"`
 	IdStorage uuid.UUID `json:"omitempty" bson:"storageId"`
 }
+
+// TODO auth  отнести к юзеру а в базе возвращать данные пользователя
 
 func (u *User) hash() (string, error) {
 	passHash, err := bcrypt.GenerateFromPassword([]byte(u.Password), bcrypt.DefaultCost)

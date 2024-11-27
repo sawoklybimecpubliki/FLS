@@ -11,6 +11,7 @@ import (
 
 type Handler struct {
 	D storage.Database
+	F storage.FileStorage
 }
 
 func (h *Handler) Registration(w http.ResponseWriter, r *http.Request) {
@@ -61,7 +62,7 @@ func (h *Handler) ShowAll(w http.ResponseWriter, r *http.Request) {
 
 func (h *Handler) GetAnswer(w http.ResponseWriter, r *http.Request) {
 	answer, err := json.Marshal("Vse rabotaet, vot otvet")
-
+	log.Println(r.URL.Query().Get("id"))
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -83,11 +84,14 @@ func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 	}
-	if err := h.D.Authentication(context.TODO(), u); err != nil {
+	if token, err := h.D.Authentication(context.TODO(), u); err != nil {
 		answer, _ := json.Marshal(err.Error())
 		w.Write(answer)
 	} else {
 		answer, _ := json.Marshal("Successful login")
+		log.Println("TOKEN: ", token)
+		cookie := &http.Cookie{Name: "JWT", Value: token}
+		http.SetCookie(w, cookie)
 		w.Write(answer)
 	}
 }
@@ -115,9 +119,41 @@ func (h *Handler) DeleteUser(w http.ResponseWriter, r *http.Request) {
 
 }
 
+func (h *Handler) UploadFile(w http.ResponseWriter, r *http.Request) {
+
+	file, header, _ := r.FormFile("file")
+
+	// TODO сделать придумать как проверять пользователя
+	err := h.F.UploadFile(context.Background(), file, header, "1")
+	defer file.Close()
+
+	if err != nil {
+		log.Println(err)
+		answer, error := json.Marshal(err)
+
+		if error != nil {
+			log.Println("marshaling error", error)
+		}
+
+		w.Write(answer)
+	} else {
+
+		answer, err := json.Marshal("File uploaded successfully")
+
+		if err != nil {
+			log.Println("marshaling error", err)
+		}
+
+		w.Write(answer)
+	}
+
+}
+
 func (h *Handler) Mux(mux *http.ServeMux) {
 	mux.HandleFunc("GET /users", h.ShowAll)
 	mux.HandleFunc("GET /answer", h.GetAnswer)
 	mux.HandleFunc("POST /registration", h.Registration)
 	mux.HandleFunc("GET /login", h.Login)
+	mux.HandleFunc("POST /upload", h.UploadFile)
+
 }
