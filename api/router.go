@@ -1,12 +1,12 @@
 package api
 
 import (
+	"FLS/storage"
 	"context"
 	"encoding/json"
 	"io"
 	"log"
 	"net/http"
-	"service/storage"
 )
 
 type Handler struct {
@@ -123,7 +123,6 @@ func (h *Handler) UploadFile(w http.ResponseWriter, r *http.Request) {
 
 	file, header, _ := r.FormFile("file")
 
-	// TODO сделать придумать как проверять пользователя
 	err := h.F.UploadFile(context.Background(), file, header, "1")
 	defer file.Close()
 

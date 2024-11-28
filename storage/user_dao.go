@@ -1,6 +1,7 @@
 package storage
 
 import (
+	"FLS/storage/jwt"
 	"context"
 	"errors"
 	"github.com/google/uuid"
@@ -9,7 +10,6 @@ import (
 	"go.mongodb.org/mongo-driver/x/bsonx/bsoncore"
 	"golang.org/x/crypto/bcrypt"
 	"log"
-	"service/storage/jwt"
 	"time"
 )
 

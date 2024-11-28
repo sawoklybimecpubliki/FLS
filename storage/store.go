@@ -7,7 +7,6 @@ import (
 	"github.com/google/uuid"
 	"golang.org/x/crypto/bcrypt"
 	"log/slog"
-	"mime/multipart"
 )
 
 type Database interface {
@@ -18,8 +17,9 @@ type Database interface {
 }
 
 type FileStorage interface {
-	UploadFile(ctx context.Context, file multipart.File, head *multipart.FileHeader, id string) error
-	DeleteFile(ctx context.Context, id int) error
+	UploadFile(ctx context.Context, file Element, id string) error
+	DeleteFile(ctx context.Context, id string, name string) error
+	SelectFile(ctx context.Context, id string, filename string) (Element, error)
 }
 
 type User struct {
