@@ -123,7 +123,11 @@ func (h *Handler) UploadFile(w http.ResponseWriter, r *http.Request) {
 
 	file, header, _ := r.FormFile("file")
 
-	err := h.F.UploadFile(context.Background(), file, header, "1")
+	err := h.F.UploadFile(context.Background(), storage.Element{
+		Filename: header.Filename,
+		Size:     header.Size,
+		F:        file,
+	}, "1")
 	defer file.Close()
 
 	if err != nil {
@@ -148,11 +152,34 @@ func (h *Handler) UploadFile(w http.ResponseWriter, r *http.Request) {
 
 }
 
+func (h *Handler) DeleteFile(w http.ResponseWriter, r *http.Request) {
+	var s []byte
+	s, err := io.ReadAll(r.Body)
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	var e storage.Element
+	err = json.Unmarshal(s, &e)
+
+	if err != nil {
+		log.Println("marshal error")
+	}
+
+	if err := h.F.DeleteFile(context.Background(), "sawok", e.Filename); err != nil {
+		log.Println("Deleting file error", err)
+	} else {
+		w.Write([]byte("Successful delete"))
+	}
+}
+
 func (h *Handler) Mux(mux *http.ServeMux) {
 	mux.HandleFunc("GET /users", h.ShowAll)
 	mux.HandleFunc("GET /answer", h.GetAnswer)
 	mux.HandleFunc("POST /registration", h.Registration)
 	mux.HandleFunc("GET /login", h.Login)
 	mux.HandleFunc("POST /upload", h.UploadFile)
+	mux.HandleFunc("POST /delete", h.DeleteFile)
 
 }
