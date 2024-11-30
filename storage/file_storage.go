@@ -13,6 +13,7 @@ import (
 
 const (
 	limitWeight = 209715200
+	storagePath = "C:/Users/sawok/GolandProjects/cloudService/storage/file_storage"
 )
 
 type Element struct {
@@ -27,24 +28,24 @@ type StoreFiles struct {
 
 func (sf *StoreFiles) UploadFile(ctx context.Context, file Element, id string) error {
 
+	os.Chdir(storagePath)
+
 	if file.Size > limitWeight {
 		return errors.New("File too heavy")
 	}
 
-	path := filepath.Join("./storage/file_storage", id)
-
-	errC := os.Chdir(path)
+	errC := os.Chdir(filepath.Join(storagePath, id))
 
 	log.Println("C: ", errC)
 
 	if errC != nil {
-		errM := os.Mkdir(path, fs.ModeDir)
+		errM := os.Mkdir(filepath.Join(storagePath, id), fs.ModeDir)
 		if errM != nil {
 			log.Println("error creating directory", errM)
 			return errM
 		}
 	}
-
+	os.Chdir(filepath.Join(storagePath, id))
 	dst, errD := os.Create(file.Filename)
 
 	if errD != nil {
@@ -66,7 +67,9 @@ func (sf *StoreFiles) UploadFile(ctx context.Context, file Element, id string) e
 
 func (sf *StoreFiles) DeleteFile(ctx context.Context, id string, name string) error {
 
-	err := os.Remove(filepath.Join("./file_storage", id, name))
+	os.Chdir(filepath.Join("C:/Users/sawok/GolandProjects/cloudService/storage/file_storage", id))
+
+	err := os.Remove(name)
 
 	if err != nil {
 		log.Println("deleting failed")
@@ -77,9 +80,12 @@ func (sf *StoreFiles) DeleteFile(ctx context.Context, id string, name string) er
 }
 
 func (sf *StoreFiles) SelectFile(ctx context.Context, id string, filename string) (Element, error) {
-	var file Element
-	f, err := os.Open("./file_storage" + id + filename)
+	os.Chdir(filepath.Join("C:/Users/sawok/GolandProjects/cloudService/storage/file_storage", id))
 
+	var file Element
+
+	f, err := os.Open(filename)
+	defer f.Close()
 	if err != nil {
 		log.Println("no such file in storage")
 		return Element{}, err
