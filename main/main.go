@@ -2,6 +2,7 @@ package main
 
 import (
 	"FLS/api"
+	"FLS/filestorage"
 	"FLS/storage"
 	"context"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -36,7 +37,7 @@ func run() error {
 	}()
 
 	store := storage.UserDAO{client.Database("cloud").Collection("Users")}
-	filestore := storage.StoreFiles{}
+	filestore := filestorage.StoreFiles{}
 
 	//store := storage.DataBase{make(map[string]string)}
 

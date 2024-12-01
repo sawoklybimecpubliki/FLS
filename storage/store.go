@@ -1,6 +1,7 @@
 package storage
 
 import (
+	"FLS/filestorage"
 	"context"
 	"errors"
 	"github.com/golang-jwt/jwt"
@@ -17,9 +18,9 @@ type Database interface {
 }
 
 type FileStorage interface {
-	UploadFile(ctx context.Context, file Element, id string) error
+	UploadFile(ctx context.Context, file filestorage.Element, id string) error
 	DeleteFile(ctx context.Context, id string, name string) error
-	SelectFile(ctx context.Context, id string, filename string) (Element, error)
+	SelectFile(ctx context.Context, id string, filename string) (filestorage.Element, error)
 }
 
 type User struct {

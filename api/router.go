@@ -1,6 +1,7 @@
 package api
 
 import (
+	"FLS/filestorage"
 	"FLS/storage"
 	"context"
 	"encoding/json"
@@ -123,7 +124,7 @@ func (h *Handler) UploadFile(w http.ResponseWriter, r *http.Request) {
 
 	file, header, _ := r.FormFile("file")
 
-	err := h.F.UploadFile(context.Background(), storage.Element{
+	err := h.F.UploadFile(context.Background(), filestorage.Element{
 		Filename: header.Filename,
 		Size:     header.Size,
 		F:        file,
@@ -160,7 +161,7 @@ func (h *Handler) DeleteFile(w http.ResponseWriter, r *http.Request) {
 		log.Fatal(err)
 	}
 
-	var e storage.Element
+	var e filestorage.Element
 	err = json.Unmarshal(s, &e)
 
 	if err != nil {
@@ -174,6 +175,30 @@ func (h *Handler) DeleteFile(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func (h *Handler) SelectFile(w http.ResponseWriter, r *http.Request) {
+	var s []byte
+	s, err := io.ReadAll(r.Body)
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	var e filestorage.Element
+	err = json.Unmarshal(s, &e)
+
+	if err != nil {
+		log.Println("marshal error")
+	}
+
+	e, err = h.F.SelectFile(context.Background(), "sawok", e.Filename)
+	if err != nil {
+		log.Println("Select failed: ", err)
+	} else {
+		w.Write([]byte("Successful select"))
+		log.Println("SIZE: ", e.Size, "NAME:", e.Filename)
+	}
+}
+
 func (h *Handler) Mux(mux *http.ServeMux) {
 	mux.HandleFunc("GET /users", h.ShowAll)
 	mux.HandleFunc("GET /answer", h.GetAnswer)
@@ -181,5 +206,5 @@ func (h *Handler) Mux(mux *http.ServeMux) {
 	mux.HandleFunc("GET /login", h.Login)
 	mux.HandleFunc("POST /upload", h.UploadFile)
 	mux.HandleFunc("POST /delete", h.DeleteFile)
-
+	mux.HandleFunc("GET /select", h.SelectFile)
 }
