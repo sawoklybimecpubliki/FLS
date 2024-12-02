@@ -5,6 +5,7 @@ import (
 	"FLS/storage"
 	"context"
 	"encoding/json"
+	"fmt"
 	"io"
 	"log"
 	"net/http"
@@ -12,7 +13,7 @@ import (
 
 type Handler struct {
 	D storage.Database
-	F storage.FileStorage
+	F filestorage.Service
 }
 
 func (h *Handler) Registration(w http.ResponseWriter, r *http.Request) {
@@ -123,76 +124,39 @@ func (h *Handler) DeleteUser(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) UploadFile(w http.ResponseWriter, r *http.Request) {
 
 	file, header, _ := r.FormFile("file")
-
-	err := h.F.UploadFile(context.Background(), filestorage.Element{
-		Filename: header.Filename,
-		Size:     header.Size,
-		F:        file,
-	}, "1")
 	defer file.Close()
 
+	err := h.F.UploadFile(context.Background(), filestorage.Element{header.Filename, header.Size, file}, "sawok")
 	if err != nil {
 		log.Println(err)
-		answer, error := json.Marshal(err)
-
-		if error != nil {
-			log.Println("marshaling error", error)
-		}
-
-		w.Write(answer)
+		fmt.Fprint(w, err)
 	} else {
-
 		answer, err := json.Marshal("File uploaded successfully")
-
 		if err != nil {
 			log.Println("marshaling error", err)
 		}
 
 		w.Write(answer)
 	}
-
 }
 
 func (h *Handler) DeleteFile(w http.ResponseWriter, r *http.Request) {
-	var s []byte
-	s, err := io.ReadAll(r.Body)
 
-	if err != nil {
-		log.Fatal(err)
-	}
+	filename := r.PathValue("id")
 
-	var e filestorage.Element
-	err = json.Unmarshal(s, &e)
-
-	if err != nil {
-		log.Println("marshal error")
-	}
-
-	if err := h.F.DeleteFile(context.Background(), "sawok", e.Filename); err != nil {
+	if err := h.F.DeleteFile(context.Background(), "sawok", filename); err != nil {
 		log.Println("Deleting file error", err)
 	} else {
 		w.Write([]byte("Successful delete"))
 	}
 }
 
-func (h *Handler) SelectFile(w http.ResponseWriter, r *http.Request) {
-	var s []byte
-	s, err := io.ReadAll(r.Body)
+func (h *Handler) GetFile(w http.ResponseWriter, r *http.Request) {
 
+	filename := r.PathValue("id")
+	e, err := h.F.SelectFile(context.Background(), "sawok", filename)
 	if err != nil {
-		log.Fatal(err)
-	}
-
-	var e filestorage.Element
-	err = json.Unmarshal(s, &e)
-
-	if err != nil {
-		log.Println("marshal error")
-	}
-
-	e, err = h.F.SelectFile(context.Background(), "sawok", e.Filename)
-	if err != nil {
-		log.Println("Select failed: ", err)
+		fmt.Fprint(w, "Get failed")
 	} else {
 		w.Write([]byte("Successful select"))
 		log.Println("SIZE: ", e.Size, "NAME:", e.Filename)
@@ -202,9 +166,9 @@ func (h *Handler) SelectFile(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) Mux(mux *http.ServeMux) {
 	mux.HandleFunc("GET /users", h.ShowAll)
 	mux.HandleFunc("GET /answer", h.GetAnswer)
-	mux.HandleFunc("POST /registration", h.Registration)
-	mux.HandleFunc("GET /login", h.Login)
-	mux.HandleFunc("POST /upload", h.UploadFile)
-	mux.HandleFunc("POST /delete", h.DeleteFile)
-	mux.HandleFunc("GET /select", h.SelectFile)
+	mux.HandleFunc("POST /user", h.Registration)
+	mux.HandleFunc("GET /user", h.Login)
+	mux.HandleFunc("POST /file", h.UploadFile)
+	mux.HandleFunc("DELETE /file/{id}", h.DeleteFile)
+	mux.HandleFunc("GET /file/{id}", h.GetFile)
 }

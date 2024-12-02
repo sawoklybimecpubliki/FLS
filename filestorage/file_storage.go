@@ -12,14 +12,14 @@ import (
 )
 
 var (
-	ErrIsExist  = errors.New("Already exist ")
-	ErrTooHeavy = errors.New("File too heavy ")
+	errIsExist  = errors.New("Already exist ")
+	errTooHeavy = errors.New("File too heavy ")
 )
 
 const (
 	limitSize = 209715200
 	//storagePath = "C:/Users/sawok/GolandProjects/cloudService/storage/file_storage"
-	//storagePath = "/app/storage/file_storage"
+	storagePath = "/app/file_storage"
 )
 
 type Service interface {
@@ -35,16 +35,16 @@ type Element struct {
 }
 
 type StoreFiles struct {
-	StorePath string
+	storePath string
 }
 
 func (sf *StoreFiles) UploadFile(ctx context.Context, file Element, storageId string) error {
 
 	if file.Size > limitSize {
-		return ErrTooHeavy
+		return errTooHeavy
 	}
 
-	path := filepath.Join(sf.StorePath, storageId)
+	path := filepath.Join(storagePath, storageId)
 	if !checkFileExists(path) {
 		errM := os.Mkdir(path, fs.ModeDir)
 		if errM != nil {
@@ -54,7 +54,7 @@ func (sf *StoreFiles) UploadFile(ctx context.Context, file Element, storageId st
 	}
 
 	if checkFileExists(filepath.Join(path, file.Filename)) {
-		return ErrIsExist
+		return errIsExist
 	}
 
 	dst, err := os.Create(filepath.Join(path, file.Filename))
@@ -77,7 +77,7 @@ func (sf *StoreFiles) UploadFile(ctx context.Context, file Element, storageId st
 
 func (sf *StoreFiles) DeleteFile(ctx context.Context, storageId string, name string) error {
 
-	path := filepath.Join(sf.StorePath, storageId, name)
+	path := filepath.Join(storagePath, storageId, name)
 
 	err := os.Remove(path)
 
@@ -92,7 +92,7 @@ func (sf *StoreFiles) DeleteFile(ctx context.Context, storageId string, name str
 func (sf *StoreFiles) SelectFile(ctx context.Context, storageId string, filename string) (Element, error) {
 
 	var file Element
-	path := filepath.Join(sf.StorePath, storageId, filename)
+	path := filepath.Join(storagePath, storageId, filename)
 	f, err := os.Open(path)
 	defer f.Close()
 
@@ -112,4 +112,5 @@ func (sf *StoreFiles) SelectFile(ctx context.Context, storageId string, filename
 
 func checkFileExists(path string) bool {
 	_, err := os.Stat(path)
-	return !os.IsNo
+	return !os.IsNotExist(err)
+}
