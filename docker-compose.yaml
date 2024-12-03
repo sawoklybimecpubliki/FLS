@@ -5,15 +5,22 @@ services:
       - "80:80"
     networks:
       - backend
-    environment:
-      - FISTOLI_MONGO_HOST="mongodb"
-      - FISTOLI_REDIS_ADDR="redis"
-      - FISTOLI_MONGO_PATH="/app/storage/file_storage"
     depends_on:
       - mongodb
-      - sessions
 
   mongodb:
     image: mongo:latest
     restart: always
-    ports:
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+    networks:
+      - backend
+
+volumes:
+  mongodb_data:
+
+networks:
+  backend:
+    driver: bridge

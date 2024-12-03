@@ -154,7 +154,7 @@ func (h *Handler) DeleteFile(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) GetFile(w http.ResponseWriter, r *http.Request) {
 
 	filename := r.PathValue("id")
-	e, err := h.F.SelectFile(context.Background(), "sawok", filename)
+	e, err := h.F.GetFile(context.Background(), "sawok", filename)
 	if err != nil {
 		fmt.Fprint(w, "Get failed")
 	} else {

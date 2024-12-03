@@ -25,7 +25,7 @@ const (
 type Service interface {
 	UploadFile(ctx context.Context, file Element, id string) error
 	DeleteFile(ctx context.Context, id string, name string) error
-	SelectFile(ctx context.Context, id string, filename string) (Element, error)
+	GetFile(ctx context.Context, id string, filename string) (Element, error)
 }
 
 type Element struct {
@@ -89,7 +89,7 @@ func (sf *StoreFiles) DeleteFile(ctx context.Context, storageId string, name str
 	return nil
 }
 
-func (sf *StoreFiles) SelectFile(ctx context.Context, storageId string, filename string) (Element, error) {
+func (sf *StoreFiles) GetFile(ctx context.Context, storageId string, filename string) (Element, error) {
 
 	var file Element
 	path := filepath.Join(storagePath, storageId, filename)
