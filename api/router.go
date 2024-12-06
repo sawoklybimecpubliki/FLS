@@ -3,6 +3,7 @@ package api
 import (
 	"FLS/filestorage"
 	"FLS/storage"
+	"FLS/storage/session"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -14,6 +15,7 @@ import (
 type Handler struct {
 	D storage.Database
 	F filestorage.Service
+	S session.Service
 }
 
 func (h *Handler) Registration(w http.ResponseWriter, r *http.Request) {
@@ -124,51 +126,75 @@ func (h *Handler) DeleteUser(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) UploadFile(w http.ResponseWriter, r *http.Request) {
 
 	file, header, _ := r.FormFile("file")
+	// TODO сделать придумать как проверять пользователя
 	defer file.Close()
-
 	err := h.F.UploadFile(context.Background(), filestorage.Element{header.Filename, header.Size, file}, "sawok")
+
 	if err != nil {
 		log.Println(err)
-		fmt.Fprint(w, err)
+		answer, error := json.Marshal(err)
+
+		if error != nil {
+			log.Println("marshaling error", error)
+		}
+
+		w.Write(answer)
 	} else {
+
 		answer, err := json.Marshal("File uploaded successfully")
+
 		if err != nil {
 			log.Println("marshaling error", err)
 		}
 
 		w.Write(answer)
 	}
+
 }
 
 func (h *Handler) DeleteFile(w http.ResponseWriter, r *http.Request) {
+	var s []byte
+	s, err := io.ReadAll(r.Body)
 
-	filename := r.PathValue("id")
+	if err != nil {
+		log.Fatal(err)
+	}
 
-	if err := h.F.DeleteFile(context.Background(), "sawok", filename); err != nil {
+	var e filestorage.Element
+	err = json.Unmarshal(s, &e)
+
+	if err != nil {
+		log.Println("marshal error")
+	}
+
+	if err := h.F.DeleteFile(context.Background(), "sawok", e.Filename); err != nil {
 		log.Println("Deleting file error", err)
 	} else {
 		w.Write([]byte("Successful delete"))
 	}
 }
 
-func (h *Handler) GetFile(w http.ResponseWriter, r *http.Request) {
-
-	filename := r.PathValue("id")
-	e, err := h.F.GetFile(context.Background(), "sawok", filename)
-	if err != nil {
-		fmt.Fprint(w, "Get failed")
-	} else {
-		w.Write([]byte("Successful select"))
-		log.Println("SIZE: ", e.Size, "NAME:", e.Filename)
+func (h *Handler) AuthMiddleware(next http.HandlerFunc) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		sessionId := r.Header.Get("Session")
+		f, err := h.S.CheckSession(sessionId)
+		if err != nil {
+			fmt.Fprint(w, err)
+			return
+		}
+		if !f {
+			h.S.SessionRefresh(sessionId)
+		}
+		next.ServeHTTP(w, r)
 	}
 }
 
 func (h *Handler) Mux(mux *http.ServeMux) {
 	mux.HandleFunc("GET /users", h.ShowAll)
 	mux.HandleFunc("GET /answer", h.GetAnswer)
-	mux.HandleFunc("POST /user", h.Registration)
-	mux.HandleFunc("GET /user", h.Login)
-	mux.HandleFunc("POST /file", h.UploadFile)
-	mux.HandleFunc("DELETE /file/{id}", h.DeleteFile)
-	mux.HandleFunc("GET /file/{id}", h.GetFile)
+	mux.HandleFunc("POST /registration", h.Registration)
+	mux.HandleFunc("GET /login", h.Login)
+	mux.HandleFunc("POST /upload", h.UploadFile)
+	mux.HandleFunc("POST /delete", h.DeleteFile)
+
 }

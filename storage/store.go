@@ -1,6 +1,7 @@
 package storage
 
 import (
+	"FLS/filestorage"
 	"context"
 	"errors"
 	"github.com/golang-jwt/jwt"
@@ -20,6 +21,12 @@ type User struct {
 	Login     string    `json:"Login" bson:"login"`
 	Password  string    `json:"Password" bson:"password"`
 	IdStorage uuid.UUID `json:"omitempty" bson:"storageId"`
+}
+
+type FileStorage interface {
+	UploadFile(ctx context.Context, file filestorage.Element, id string) error
+	DeleteFile(ctx context.Context, id string, name string) error
+	SelectFile(ctx context.Context, id string, filename string) (filestorage.Element, error)
 }
 
 // TODO auth  отнести к юзеру а в базе возвращать данные пользователя
