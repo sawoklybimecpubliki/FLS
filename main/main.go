@@ -4,6 +4,7 @@ import (
 	"FLS/api"
 	"FLS/filestorage"
 	"FLS/storage"
+	"FLS/storage/session"
 	"context"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
@@ -37,16 +38,16 @@ func run() error {
 	}()
 
 	store := storage.UserDAO{client.Database("cloud").Collection("Users")}
-	filestore := filestorage.StoreFiles{}
-
 	//store := storage.DataBase{make(map[string]string)}
+	filestore := filestorage.StoreFiles{}
+	sessionStore := session.Service{&session.Store{make(map[string]session.Provider)}}
 
-	hand := api.Handler{&store, &filestore}
+	hand := api.Handler{&store, &filestore, sessionStore}
 
 	router := http.NewServeMux()
 	hand.Mux(router)
 
 	log.Println("server start listening on :80")
 
-	return http.ListenAndServe(":80", router)
+	return http.ListenAndServe("localhost:80", router)
 }
