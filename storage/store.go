@@ -1,10 +1,8 @@
 package storage
 
 import (
-	"FLS/filestorage"
 	"context"
 	"errors"
-	"github.com/golang-jwt/jwt"
 	"github.com/google/uuid"
 	"golang.org/x/crypto/bcrypt"
 	"log/slog"
@@ -21,12 +19,6 @@ type User struct {
 	Login     string    `json:"Login" bson:"login"`
 	Password  string    `json:"Password" bson:"password"`
 	IdStorage uuid.UUID `json:"omitempty" bson:"storageId"`
-}
-
-type FileStorage interface {
-	UploadFile(ctx context.Context, file filestorage.Element, id string) error
-	DeleteFile(ctx context.Context, id string, name string) error
-	SelectFile(ctx context.Context, id string, filename string) (filestorage.Element, error)
 }
 
 // TODO auth  отнести к юзеру а в базе возвращать данные пользователя
@@ -66,15 +58,15 @@ func (d *DataBase) AddNewUser(ctx context.Context, u User) error {
 	return nil
 }
 
-func (d *DataBase) Authentication(ctx context.Context, u User) (*jwt.Token, error) {
+func (d *DataBase) Authentication(ctx context.Context, u User) (string, error) {
 	if _, ok := d.Data[u.Login]; !ok {
-		return nil, errors.New("user not found")
+		return "", errors.New("user not found")
 	}
 	if err := bcrypt.CompareHashAndPassword([]byte(d.Data[u.Login]), []byte(u.Password)); err != nil {
-		return nil, errors.New("invalid password")
+		return "", errors.New("invalid password")
 	}
 	//TODO тут jwt token
-	return nil, nil
+	return "", nil
 }
 
 func (d *DataBase) DeleteUser(ctx context.Context, id string) error {

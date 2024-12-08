@@ -12,20 +12,20 @@ import (
 )
 
 var (
-	errIsExist  = errors.New("Already exist ")
-	errTooHeavy = errors.New("File too heavy ")
+	ErrIsExist  = errors.New("Already exist ")
+	ErrTooHeavy = errors.New("File too heavy ")
 )
 
 const (
 	limitSize = 209715200
 	//storagePath = "C:/Users/sawok/GolandProjects/cloudService/storage/file_storage"
-	storagePath = "/app/file_storage"
+	storagePath = "/app/storage/file_storage"
 )
 
 type Service interface {
 	UploadFile(ctx context.Context, file Element, id string) error
 	DeleteFile(ctx context.Context, id string, name string) error
-	GetFile(ctx context.Context, id string, filename string) (Element, error)
+	SelectFile(ctx context.Context, id string, filename string) (Element, error)
 }
 
 type Element struct {
@@ -41,7 +41,7 @@ type StoreFiles struct {
 func (sf *StoreFiles) UploadFile(ctx context.Context, file Element, storageId string) error {
 
 	if file.Size > limitSize {
-		return errTooHeavy
+		return ErrTooHeavy
 	}
 
 	path := filepath.Join(storagePath, storageId)
@@ -54,7 +54,7 @@ func (sf *StoreFiles) UploadFile(ctx context.Context, file Element, storageId st
 	}
 
 	if checkFileExists(filepath.Join(path, file.Filename)) {
-		return errIsExist
+		return ErrIsExist
 	}
 
 	dst, err := os.Create(filepath.Join(path, file.Filename))
@@ -89,7 +89,7 @@ func (sf *StoreFiles) DeleteFile(ctx context.Context, storageId string, name str
 	return nil
 }
 
-func (sf *StoreFiles) GetFile(ctx context.Context, storageId string, filename string) (Element, error) {
+func (sf *StoreFiles) SelectFile(ctx context.Context, storageId string, filename string) (Element, error) {
 
 	var file Element
 	path := filepath.Join(storagePath, storageId, filename)
