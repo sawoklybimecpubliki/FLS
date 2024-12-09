@@ -29,7 +29,7 @@ type SessionStore interface {
 	Set(p Provider) string
 	Get(sessionId string) (Provider, error)
 	Del(sessionId string)
-	IsExist(login string) (string, bool)
+	Exists(login string) (string, bool)
 }
 
 type Store struct {
@@ -54,7 +54,7 @@ func (s *Store) Del(sessionId string) {
 	delete(s.Val, sessionId)
 }
 
-func (s *Store) IsExist(login string) (string, bool) {
+func (s *Store) Exists(login string) (string, bool) {
 	for id, value := range s.Val {
 		if value.Login == login {
 			log.Println("session already exist")
@@ -69,7 +69,7 @@ type Service struct {
 }
 
 func (s *Service) StartSession(login, idStorage string) (string, error) {
-	if id, f := s.Val.IsExist(login); f {
+	if id, f := s.Val.Exists(login); f {
 		return id, nil
 	}
 	sessionId := s.Val.Set(Provider{login, idStorage, time.Now().Unix() + 120})
@@ -86,7 +86,7 @@ func (s *Service) DestroySession(sessionId string) error {
 }
 
 func (s *Service) CheckSession(sessionId string) (bool, error) {
-	if _, ok := s.Val.IsExist(sessionId); !ok {
+	if _, ok := s.Val.Exists(sessionId); !ok {
 		log.Println(SessionErr)
 		return false, SessionErr
 	}

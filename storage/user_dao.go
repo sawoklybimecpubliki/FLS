@@ -4,23 +4,48 @@ import (
 	"FLS/storage/jwt"
 	"context"
 	"errors"
-	"github.com/google/uuid"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 	"go.mongodb.org/mongo-driver/x/bsonx/bsoncore"
 	"golang.org/x/crypto/bcrypt"
 	"log"
+	"strconv"
 	"time"
 )
 
 type UserDAO struct {
 	C *mongo.Collection
+	F *mongo.Collection
 }
 
-func NewDB(c *mongo.Collection) Database {
-	return &UserDAO{
-		c,
+type Config struct {
+	Host            string
+	Port            int
+	TimeoutSeconds  int
+	DBName          string
+	CollectionUsers string
+	CollectionFiles string
+}
+
+type StoreFiles struct {
+	IdStorage string `bson:"idStorage"`
+	File_1    string `bson:"file_1"`
+	File_2    string `bson:"file_2"`
+	File_3    string `bson:"file_3"`
+	File_4    string `bson:"file_4"`
+	File_5    string `bson:"file_5"`
+}
+
+func NewClient(cfg Config) (*mongo.Client, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(cfg.TimeoutSeconds)*time.Second)
+	defer cancel()
+	client, err := mongo.Connect(ctx,
+		options.Client().ApplyURI("mongodb://"+cfg.Host+":"+strconv.Itoa(cfg.Port)))
+	if err != nil {
+		return nil, err
 	}
+	return client, nil
 }
 
 func (db *UserDAO) AddNewUser(ctx context.Context, u User) error {
@@ -28,8 +53,24 @@ func (db *UserDAO) AddNewUser(ctx context.Context, u User) error {
 		return err
 	}
 	u.Password, _ = u.hash()
-	u.IdStorage = uuid.New()
+	u.IdStorage = u.Login
 	_, err := db.C.InsertOne(ctx, u)
+	//TODO обдумать ещё раз идею
+	docs := StoreFiles{
+		u.IdStorage,
+		"",
+		"",
+		"",
+		"",
+		"",
+	}
+	if err != nil {
+		log.Println(err)
+	}
+	_, err = db.F.InsertOne(ctx, docs)
+	if err != nil {
+		log.Println("error insert", err)
+	}
 	return err
 }
 
@@ -107,8 +148,4 @@ func (db *UserDAO) All(ctx context.Context) ([]User, error) {
 	}
 
 	return u, err
-}
-
-func (db *UserDAO) AddFile(ctx context.Context, uuid uuid.UUID) {
-
 }
