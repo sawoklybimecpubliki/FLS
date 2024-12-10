@@ -1,14 +1,15 @@
 mongo:
-  host: "mongodb"
+  host: "localhost"
   port: 27017
   timeoutSeconds: 10
   dbName: "cloud"
-  collection: "user"
+  collectionUsers: "Users"
+  collectionFiles: "Files"
 
 redis:
-  addr: "sessions:6379"
+  addr: "localhost:6379"
   password: ""
   db: 0
-  max_retries: 5
-  dial_timeout: 10
+  maxRetries: 5
+  dialTimeout: 10
   timeout: 5

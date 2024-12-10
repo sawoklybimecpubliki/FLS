@@ -5,8 +5,12 @@ services:
       - "80:80"
     networks:
       - backend
+    environment:
+      - FISTOLI_MONGO_HOST="mongodb"
+      - FISTOLI_REDIS_ADDR="redis"
     depends_on:
       - mongodb
+      - sessions
 
   mongodb:
     image: mongo:latest
@@ -18,8 +22,18 @@ services:
     networks:
       - backend
 
+  redis:
+    image: redis:latest
+    restart: always
+    ports:
+      - "6379:6379"
+    command: ["redis-server", "--appendonly", "yes"]
+    networks:
+      - backend
+
 volumes:
   mongodb_data:
+  redis_data:
 
 networks:
   backend:
