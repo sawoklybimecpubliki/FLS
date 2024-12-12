@@ -76,4 +76,7 @@ func (r *SessionStore) Del(sessionId string) {
 func (r *SessionStore) Exists(sessionId string) (string, bool) {
 	err := r.R.Get(sessionId)
 	if err.Err() != redis.Nil {
-		return sessionId, tru
+		return sessionId, true
+	}
+	return err.String(), false
+}

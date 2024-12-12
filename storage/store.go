@@ -3,7 +3,6 @@ package storage
 import (
 	"context"
 	"errors"
-	"github.com/google/uuid"
 	"golang.org/x/crypto/bcrypt"
 	"log/slog"
 )
@@ -16,9 +15,9 @@ type Database interface {
 }
 
 type User struct {
-	Login     string    `json:"Login" bson:"login"`
-	Password  string    `json:"Password" bson:"password"`
-	IdStorage uuid.UUID `json:"omitempty" bson:"storageId"`
+	Login     string `json:"Login" bson:"login"`
+	Password  string `json:"Password" bson:"password"`
+	IdStorage string `json:"omitempty" bson:"storageId"`
 }
 
 // TODO auth  отнести к юзеру а в базе возвращать данные пользователя
@@ -80,7 +79,7 @@ func (d *DataBase) DeleteUser(ctx context.Context, id string) error {
 func (d *DataBase) All(ctx context.Context) ([]User, error) {
 	var u []User
 	for login, password := range d.Data {
-		u = append(u, User{login, string(password), uuid.Nil})
+		u = append(u, User{login, password, ""})
 	}
 	return u, nil
 }

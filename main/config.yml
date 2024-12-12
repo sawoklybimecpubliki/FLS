@@ -1,0 +1,13 @@
+mongo:
+  host: "localhost"
+  port: 27017
+  timeoutSeconds: 10
+  dbName: "cloud"
+  collectionUsers: "Users"
+  path: "C:/Users/sawok/GolandProjects/cloudService/storage/file_storage"
+
+redis:
+  addr: "localhost:6379"
+  password: ""
+  db: 0
+ 

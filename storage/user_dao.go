@@ -16,7 +16,6 @@ import (
 
 type UserDAO struct {
 	C *mongo.Collection
-	F *mongo.Collection
 }
 
 type Config struct {
@@ -25,16 +24,7 @@ type Config struct {
 	TimeoutSeconds  int
 	DBName          string
 	CollectionUsers string
-	CollectionFiles string
-}
-
-type StoreFiles struct {
-	IdStorage string `bson:"idStorage"`
-	File_1    string `bson:"file_1"`
-	File_2    string `bson:"file_2"`
-	File_3    string `bson:"file_3"`
-	File_4    string `bson:"file_4"`
-	File_5    string `bson:"file_5"`
+	Path            string
 }
 
 func NewClient(cfg Config) (*mongo.Client, error) {
@@ -55,19 +45,6 @@ func (db *UserDAO) AddNewUser(ctx context.Context, u User) error {
 	u.Password, _ = u.hash()
 	u.IdStorage = u.Login
 	_, err := db.C.InsertOne(ctx, u)
-	//TODO обдумать ещё раз идею
-	docs := StoreFiles{
-		u.IdStorage,
-		"",
-		"",
-		"",
-		"",
-		"",
-	}
-	if err != nil {
-		log.Println(err)
-	}
-	_, err = db.F.InsertOne(ctx, docs)
 	if err != nil {
 		log.Println("error insert", err)
 	}

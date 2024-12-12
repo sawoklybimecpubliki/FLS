@@ -19,7 +19,7 @@ var (
 const (
 	limitSize = 209715200
 	//storagePath = "C:/Users/sawok/GolandProjects/cloudService/storage/file_storage"
-	storagePath = "/app/storage/file_storage"
+	//storagePath = "/app/storage/file_storage"
 )
 
 type Service interface {
@@ -35,7 +35,7 @@ type Element struct {
 }
 
 type StoreFiles struct {
-	storePath string
+	StorePath string
 }
 
 func (sf *StoreFiles) UploadFile(ctx context.Context, file Element, storageId string) error {
@@ -44,7 +44,7 @@ func (sf *StoreFiles) UploadFile(ctx context.Context, file Element, storageId st
 		return ErrTooHeavy
 	}
 
-	path := filepath.Join(storagePath, storageId)
+	path := filepath.Join(sf.StorePath, storageId)
 	if !checkFileExists(path) {
 		errM := os.Mkdir(path, fs.ModeDir)
 		if errM != nil {
@@ -77,7 +77,7 @@ func (sf *StoreFiles) UploadFile(ctx context.Context, file Element, storageId st
 
 func (sf *StoreFiles) DeleteFile(ctx context.Context, storageId string, name string) error {
 
-	path := filepath.Join(storagePath, storageId, name)
+	path := filepath.Join(sf.StorePath, storageId, name)
 
 	err := os.Remove(path)
 
@@ -92,7 +92,7 @@ func (sf *StoreFiles) DeleteFile(ctx context.Context, storageId string, name str
 func (sf *StoreFiles) SelectFile(ctx context.Context, storageId string, filename string) (Element, error) {
 
 	var file Element
-	path := filepath.Join(storagePath, storageId, filename)
+	path := filepath.Join(sf.StorePath, storageId, filename)
 	f, err := os.Open(path)
 	defer f.Close()
 

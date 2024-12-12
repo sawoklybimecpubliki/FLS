@@ -40,13 +40,12 @@ func run() error {
 	}()
 
 	store := storage.UserDAO{
-		C: client.Database(cfg.Mongo.DBName).Collection(cfg.Mongo.CollectionUsers),
-		F: client.Database(cfg.Mongo.DBName).Collection(cfg.Mongo.CollectionFiles)}
+		C: client.Database(cfg.Mongo.DBName).Collection(cfg.Mongo.CollectionUsers)}
 	//store := storage.DataBase{make(map[string]string)}
 
-	filestore := filestorage.StoreFiles{}
+	filestore := filestorage.StoreFiles{cfg.Mongo.Path}
 
-	var redis session.Redis
+	var redis session.SessionStore
 	redis.R, err = session.NewClient(context.Background(), cfg.Redis)
 
 	//sessionStore := session.Service{&session.Store{make(map[string]session.Provider)}}
@@ -65,7 +64,7 @@ func run() error {
 func InitConfig() {
 	viper.SetConfigName("config")
 	viper.SetConfigType("yaml")
-	viper.AddConfigPath("./storage/")
+	viper.AddConfigPath("./main/")
 	viper.SetEnvPrefix("FISTOLI")
 	viper.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
 	viper.AutomaticEnv()

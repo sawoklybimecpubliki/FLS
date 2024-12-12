@@ -25,7 +25,7 @@ type Provider struct {
 	Lifetime  int64
 }
 
-type SessionStore interface {
+type SessionStorer interface {
 	Set(p Provider) string
 	Get(sessionId string) (Provider, error)
 	Del(sessionId string)
@@ -54,7 +54,7 @@ func (s *Store) Del(sessionId string) {
 	delete(s.Val, sessionId)
 }
 
-func (s *Store) Exists(login string) (string, bool) {
+func (s *Store) IsExist(login string) (string, bool) {
 	for id, value := range s.Val {
 		if value.Login == login {
 			log.Println("session already exist")
@@ -65,7 +65,7 @@ func (s *Store) Exists(login string) (string, bool) {
 }
 
 type Service struct {
-	Val SessionStore
+	Val SessionStorer
 }
 
 func (s *Service) StartSession(login, idStorage string) (string, error) {
