@@ -17,6 +17,7 @@ type Session interface {
 	DestroySession(sessionId string) error
 	CheckSession(sessionId string) (bool, error)
 	SessionRefresh(sessionId string) (string, error)
+	GetIdStorage(sessionId string) string
 }
 
 type Provider struct {
@@ -108,4 +109,13 @@ func (s *Service) SessionRefresh(sessionId string) (string, error) {
 		return "", err
 	}
 	return sessionId, nil
+}
+
+func (s *Service) GetIdStorage(sessionId string) string {
+	p, err := s.Val.Get(sessionId)
+	if err != nil {
+		log.Println("Session not found")
+		return ""
+	}
+	return p.IdStorage
 }

@@ -1,21 +1,24 @@
 package api
 
 import (
-	"FLS/filestorage"
-	"FLS/storage"
-	"FLS/storage/session"
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/google/uuid"
+	"github.com/sawoklybimecpubliki/fistoli/filestorage"
+	"github.com/sawoklybimecpubliki/fistoli/storage"
+	"github.com/sawoklybimecpubliki/fistoli/storage/file_dao"
+	"github.com/sawoklybimecpubliki/fistoli/storage/session"
 	"io"
 	"log"
 	"net/http"
 )
 
 type Handler struct {
-	D storage.Database
-	F filestorage.Service
-	S session.Service
+	Users        storage.Database
+	FilesStorage filestorage.Service
+	Sessions     session.Session
+	FilesData    file_dao.FileDAO
 }
 
 func (h *Handler) Registration(w http.ResponseWriter, r *http.Request) {
@@ -34,7 +37,7 @@ func (h *Handler) Registration(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 	}
 
-	if err := h.D.AddNewUser(context.Background(), u); err != nil {
+	if err := h.Users.AddNewUser(context.Background(), u); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 	} else {
 		answer, _ := json.Marshal("New user was add in database")
@@ -45,7 +48,7 @@ func (h *Handler) Registration(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) ShowAll(w http.ResponseWriter, r *http.Request) {
 	var u []storage.User
 
-	u, _ = h.D.All(context.Background())
+	u, _ = h.Users.All(context.Background())
 	log.Println("show all: ", u)
 	if u == nil {
 		answer, err := json.Marshal("users not found")
@@ -88,13 +91,13 @@ func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 	}
-	if token, err := h.D.Authentication(context.TODO(), u); err != nil {
+	if token, err := h.Users.Authentication(context.TODO(), u); err != nil {
 		answer, _ := json.Marshal(err.Error())
 		w.Write(answer)
 	} else {
 		answer, _ := json.Marshal("Successful login")
 
-		sessionId, err := h.S.StartSession(u.Login, u.Login+"_storage")
+		sessionId, err := h.Sessions.StartSession(u.Login, u.Login+"_storage")
 		if err != nil {
 			fmt.Fprint(w, err)
 			return
@@ -122,7 +125,7 @@ func (h *Handler) DeleteUser(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 	}
 
-	if err := h.D.DeleteUser(context.Background(), u.Login); err != nil {
+	if err := h.Users.DeleteUser(context.Background(), u.Login); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 	} else {
 		answer, _ := json.Marshal("User was delete from database")
@@ -135,12 +138,20 @@ func (h *Handler) UploadFile(w http.ResponseWriter, r *http.Request) {
 
 	file, header, _ := r.FormFile("file")
 	defer file.Close()
-
-	err := h.F.UploadFile(context.Background(), filestorage.Element{header.Filename, header.Size, file}, "sawok")
+	sessionId := r.Header.Get("Session")
+	storageId := h.Sessions.GetIdStorage(sessionId)
+	err := h.FilesStorage.UploadFile(context.Background(),
+		filestorage.Element{header.Filename, header.Size, file}, storageId)
 	if err != nil {
 		log.Println(err)
 		fmt.Fprint(w, err)
 	} else {
+		err := h.FilesData.Insert(file_dao.Product{storageId, header.Filename, uuid.NewString()})
+		if err != nil {
+			log.Println(err)
+			w.Write([]byte("Error ins"))
+			return
+		}
 		answer, err := json.Marshal("File uploaded successfully")
 		if err != nil {
 			log.Println("marshaling error", err)
@@ -154,35 +165,53 @@ func (h *Handler) DeleteFile(w http.ResponseWriter, r *http.Request) {
 
 	filename := r.PathValue("id")
 
-	if err := h.F.DeleteFile(context.Background(), "sawok", filename); err != nil {
+	sessionId := r.Header.Get("Session")
+	storageId := h.Sessions.GetIdStorage(sessionId)
+
+	if err := h.FilesStorage.DeleteFile(context.Background(), storageId, filename); err != nil {
 		log.Println("Deleting file error", err)
 	} else {
+		err = h.FilesData.Delete(storageId, filename)
+		if err != nil {
+			log.Println(err)
+			w.Write([]byte("Error del"))
+			return
+		}
 		w.Write([]byte("Successful delete"))
 	}
 }
 
 func (h *Handler) GetFile(w http.ResponseWriter, r *http.Request) {
 
+	sessionId := r.Header.Get("Session")
+	storageId := h.Sessions.GetIdStorage(sessionId)
+
 	filename := r.PathValue("id")
-	e, err := h.F.SelectFile(context.Background(), "sawok", filename)
+	e, err := h.FilesStorage.SelectFile(context.Background(), storageId, filename)
 	if err != nil {
 		fmt.Fprint(w, "Get failed")
 	} else {
+		p, err := h.FilesData.Select(storageId, filename)
+		if err != nil {
+			log.Println(err)
+			w.Write([]byte("Error sel"))
+			return
+		}
 		w.Write([]byte("Successful select"))
-		log.Println("SIZE: ", e.Size, "NAME:", e.Filename)
+		log.Println("SIZE: ", e.Size, "NAME:", e.Filename, "product: ", p)
 	}
 }
 
 func (h *Handler) AuthMiddleware(next http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		sessionId := r.Header.Get("Session")
-		f, err := h.S.CheckSession(sessionId)
+		f, err := h.Sessions.CheckSession(sessionId)
 		if err != nil {
 			fmt.Fprint(w, err)
 			return
 		}
 		if !f {
-			h.S.SessionRefresh(sessionId)
+			h.Sessions.SessionRefresh(sessionId)
 		}
 		next.ServeHTTP(w, r)
 	}

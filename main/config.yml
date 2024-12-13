@@ -10,4 +10,13 @@ redis:
   addr: "localhost:6379"
   password: ""
   db: 0
- 
+  maxRetries: 5
+  dialTimeout: 10
+  timeout: 5
+
+postgres:
+  user: "fistoli"
+  password: "password"
+  dbName: "filesDAO"
+  sslMode: "disable"
+  driverName: "postgres"

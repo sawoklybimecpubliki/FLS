@@ -4,6 +4,7 @@ import (
 	"FLS/api"
 	"FLS/filestorage"
 	"FLS/storage"
+	"FLS/storage/file_dao"
 	"FLS/storage/session"
 	"context"
 	"github.com/spf13/viper"
@@ -13,8 +14,9 @@ import (
 )
 
 type AppConfig struct {
-	Mongo storage.Config
-	Redis session.Config
+	Mongo    storage.Config
+	Redis    session.Config
+	Postgres file_dao.Config
 }
 
 func main() {
@@ -51,7 +53,11 @@ func run() error {
 	//sessionStore := session.Service{&session.Store{make(map[string]session.Provider)}}
 	sessionStore := session.Service{&redis}
 
-	hand := api.Handler{&store, &filestore, sessionStore}
+	var filesDAO file_dao.FileDB
+	filesDAO.Db, err = file_dao.NewClient(cfg.Postgres)
+	defer filesDAO.Db.Close()
+
+	hand := api.Handler{&store, &filestore, &sessionStore, &filesDAO}
 
 	router := http.NewServeMux()
 	hand.Mux(router)
