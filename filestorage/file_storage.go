@@ -43,7 +43,6 @@ func (sf *StoreFiles) UploadFile(ctx context.Context, file Element, storageId st
 	if file.Size > limitSize {
 		return ErrTooHeavy
 	}
-
 	path := filepath.Join(sf.StorePath, storageId)
 	if !checkFileExists(path) {
 		errM := os.Mkdir(path, fs.ModeDir)
@@ -94,7 +93,7 @@ func (sf *StoreFiles) SelectFile(ctx context.Context, storageId string, filename
 	var file Element
 	path := filepath.Join(sf.StorePath, storageId, filename)
 	f, err := os.Open(path)
-	defer f.Close()
+	//defer f.Close()
 
 	if err != nil {
 		log.Println("no such file in storage")
