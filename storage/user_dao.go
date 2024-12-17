@@ -43,7 +43,7 @@ func (db *UserDAO) AddNewUser(ctx context.Context, u User) error {
 		return err
 	}
 	u.Password, _ = u.hash()
-	u.IdStorage = u.Login
+	u.IdStorage = u.Login + "_storage"
 	_, err := db.C.InsertOne(ctx, u)
 	if err != nil {
 		log.Println("error insert", err)
@@ -62,7 +62,7 @@ func (db *UserDAO) findByLogin(ctx context.Context, login string) (*User, error)
 	case mongo.ErrNoDocuments:
 		return nil, bsoncore.ErrElementNotFound
 	default:
-		return nil, errors.New("default") //TODO придумать ошибку
+		return nil, errors.New("User not found ")
 	}
 }
 

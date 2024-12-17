@@ -144,7 +144,6 @@ func (s *FileDB) Update(idStorage, filename, newFilename string) error {
 	return nil
 }
 
-// TODO удаление работает если в другой таблице нет отсылок к этому объкту(нет ссылок)
 func (s *FileDB) Delete(idStorage, filename string) error {
 	_, err := s.Db.Exec("delete from Files WHERE storageID=$1 AND file=$2", idStorage, filename)
 	if err != nil {

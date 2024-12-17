@@ -25,7 +25,7 @@ func NewClient(ctx context.Context, cfg Config) (*redis.Client, error) {
 		Password:     cfg.Password,
 		DB:           cfg.DB,
 		MaxRetries:   cfg.MaxRetries,
-		DialTimeout:  cfg.DialTimeout,
+		DialTimeout:  cfg.DialTimeout * time.Second,
 		ReadTimeout:  cfg.Timeout * time.Second,
 		WriteTimeout: cfg.Timeout * time.Second,
 	})
@@ -49,8 +49,8 @@ func (r *SessionStore) Set(p Provider) string {
 		log.Println("Marshaling error")
 		return ""
 	}
-	//TODO добавить время исчезновения
-	r.R.Set(sessionId, jsonBytes, 0)
+
+	r.R.Set(sessionId, jsonBytes, 310)
 	return sessionId
 }
 

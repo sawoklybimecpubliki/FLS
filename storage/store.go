@@ -64,7 +64,6 @@ func (d *DataBase) Authentication(ctx context.Context, u User) (string, error) {
 	if err := bcrypt.CompareHashAndPassword([]byte(d.Data[u.Login]), []byte(u.Password)); err != nil {
 		return "", errors.New("invalid password")
 	}
-	//TODO тут jwt token
 	return "", nil
 }
 
