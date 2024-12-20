@@ -2,7 +2,6 @@ package jwt
 
 import (
 	"github.com/golang-jwt/jwt"
-	"github.com/google/uuid"
 	"log"
 	"time"
 )
@@ -13,7 +12,7 @@ const (
 
 type UserJWT struct {
 	Name      string
-	IdStorage uuid.UUID
+	IdStorage string
 }
 
 func NewToken(user UserJWT, duration time.Duration) (string, error) {

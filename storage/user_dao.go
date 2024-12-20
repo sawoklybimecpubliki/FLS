@@ -1,7 +1,6 @@
 package storage
 
 import (
-	"FLS/storage/jwt"
 	"context"
 	"errors"
 	"go.mongodb.org/mongo-driver/bson"
@@ -73,22 +72,18 @@ func (db *UserDAO) findExistingUser(ctx context.Context, login string) error {
 	return nil
 }
 
-func (db *UserDAO) Authentication(ctx context.Context, u User) (string, error) {
+func (db *UserDAO) Authentication(ctx context.Context, u User) error {
 	userDB, _ := db.findByLogin(ctx, u.Login)
 
 	if userDB == nil {
-		return "", errors.New("user not found")
+		return errors.New("user not found")
 	}
 
 	if err := bcrypt.CompareHashAndPassword([]byte(userDB.Password), []byte(u.Password)); err != nil {
-		return "", errors.New("invalid password")
+		return errors.New("invalid password")
 	}
 
-	token, err := jwt.NewToken(jwt.UserJWT{u.Login, u.IdStorage}, time.Hour)
-	if err != nil {
-		log.Println(err)
-	}
-	return token, nil
+	return nil
 }
 
 func (db *UserDAO) DeleteUser(ctx context.Context, id string) error {

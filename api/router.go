@@ -26,6 +26,11 @@ type Handler struct {
 	FiLiInfo     file_dao.FiLiInfo
 }
 
+type Response struct {
+	Data   any   `json:"data"`
+	Status error `json:"status"`
+}
+
 func (h *Handler) Registration(w http.ResponseWriter, r *http.Request) {
 	var u storage.User
 	var s []byte
@@ -42,102 +47,71 @@ func (h *Handler) Registration(w http.ResponseWriter, r *http.Request) {
 
 	if err := h.Users.AddNewUser(context.Background(), u); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
-	} else {
-		answer, err := json.Marshal("New user was add in database")
-		if err != nil {
-			log.Println("marshal err: ", err)
-		}
-		_, _ = w.Write(answer)
+		return
 	}
+
+	Respond("New user was add in database", nil, w)
 }
 
 func (h *Handler) ShowAll(w http.ResponseWriter, r *http.Request) {
 	var u []storage.User
-	fmt.Println(r.Header.Get("Session"))
+
 	u, _ = h.Users.All(context.Background())
-	log.Println("show all: ", u)
 	if u == nil {
-		answer, err := json.Marshal("users not found")
-		if err != nil {
-			log.Fatal(err)
-		}
-		_, _ = w.Write(answer)
+		Respond("users not found", nil, w)
 		return
 	}
 
-	answer, err := json.Marshal(u)
-
-	if err != nil {
-		log.Fatal(err)
-	}
-	_, _ = w.Write(answer)
-}
-
-func (h *Handler) GetAnswer(w http.ResponseWriter, r *http.Request) {
-	answer, err := json.Marshal("Vse rabotaet, vot otvet")
-	log.Println(r.URL.Query().Get("id"))
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	_, _ = w.Write(answer)
+	Respond(u, nil, w)
 }
 
 func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {
 	var s []byte
 	s, err := io.ReadAll(r.Body)
-
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	var u storage.User
 	err = json.Unmarshal(s, &u)
-
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
 	}
-	if token, err := h.Users.Authentication(context.TODO(), u); err != nil {
-		answer, _ := json.Marshal(err.Error())
-		_, _ = w.Write(answer)
-	} else {
-		answer, _ := json.Marshal("Successful login")
-
-		sessionId, err := h.Sessions.StartSession(u.Login, u.Login+"_storage")
-		if err != nil {
-			_, _ = fmt.Fprint(w, err)
-			return
-		}
-		w.Header().Add("Session", sessionId)
-
-		log.Println("TOKEN: ", token)
-		cookie := &http.Cookie{Name: "JWT", Value: token}
-		http.SetCookie(w, cookie)
-		_, _ = w.Write(answer)
+	if _, err := h.Users.Authentication(r.Context(), u); err != nil {
+		Respond("Error", err, w)
+		return
 	}
+
+	sessionId, err := h.Sessions.StartSession(u.Login, u.Login+"_storage")
+	if err != nil {
+		_, _ = fmt.Fprint(w, err)
+		return
+	}
+
+	w.Header().Add("Session", sessionId)
+	Respond("Successful login", nil, w)
 }
 
 func (h *Handler) DeleteUser(w http.ResponseWriter, r *http.Request) {
 	var u storage.User
 	s, err := io.ReadAll(r.Body)
-
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	err = json.Unmarshal(s, &u)
-
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
 	}
 
-	if err := h.Users.DeleteUser(context.Background(), u.Login); err != nil {
+	if err := h.Users.DeleteUser(r.Context(), u.Login); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
-	} else {
-		answer, _ := json.Marshal("User was delete from database")
-		_, _ = w.Write(answer)
+		return
 	}
 
+	Respond("User was delete from database", nil, w)
 }
 
 func (h *Handler) UploadFile(w http.ResponseWriter, r *http.Request) {
@@ -152,49 +126,63 @@ func (h *Handler) UploadFile(w http.ResponseWriter, r *http.Request) {
 
 	sessionId := r.Header.Get("Session")
 	storageId := h.Sessions.GetIdStorage(sessionId)
-	err := h.FilesStorage.UploadFile(context.Background(),
-		filestorage.Element{Filename: header.Filename, Size: header.Size, F: file}, storageId)
+	err := h.FilesStorage.UploadFile(
+		r.Context(),
+		filestorage.Element{
+			Filename: header.Filename,
+			Size:     header.Size,
+			F:        file,
+		},
+		storageId,
+	)
 	if err != nil {
 		log.Println(err)
 		_, _ = fmt.Fprint(w, err)
-	} else {
-		err := h.FiLiInfo.F.Insert(file_dao.Product{StorageID: storageId, Filename: header.Filename,
-			FileID: uuid.NewString()})
-		if err != nil {
-			log.Println(err)
-			_, _ = w.Write([]byte("Error ins"))
-			return
-		}
-		answer, err := json.Marshal("File uploaded successfully")
-		if err != nil {
-			log.Println("marshaling error", err)
-		}
-
-		_, _ = w.Write(answer)
+		return
 	}
+	err = h.FiLiInfo.F.Insert(
+		file_dao.Product{
+			StorageID: storageId,
+			Filename:  header.Filename,
+			FileID:    uuid.NewString(),
+		},
+	)
+	if err != nil {
+		log.Println(err)
+		_, _ = w.Write([]byte("Error ins"))
+		return
+	}
+
+	Respond("File uploaded successfully", nil, w)
 }
 
 func (h *Handler) DeleteFile(w http.ResponseWriter, r *http.Request) {
 
 	filename := r.PathValue("id")
-
 	sessionId := r.Header.Get("Session")
 	storageId := h.Sessions.GetIdStorage(sessionId)
 
-	if err := h.FilesStorage.DeleteFile(context.Background(), storageId, filename); err != nil {
-		log.Println("Deleting file error", err)
-	} else {
-		file, _ := h.FiLiInfo.F.Select(storageId, filename)
-		if err := h.FiLiInfo.L.DeleteAllLinks(file.FileID); err != nil {
-			log.Println("error deleting links", err)
-		}
-
-		if err := h.FiLiInfo.F.Delete(storageId, filename); err != nil {
-			log.Println(err)
-			_, _ = w.Write([]byte("Error del"))
-		}
-		_, _ = w.Write([]byte("Successful delete"))
+	file, _ := h.FiLiInfo.F.Select(storageId, filename)
+	if err := h.FiLiInfo.L.DeleteAllLinks(file.FileID); err != nil {
+		log.Println("error deleting links", err)
+		Respond(http.StatusBadRequest, errors.New("Error"), w)
+		return
 	}
+
+	if err := h.FiLiInfo.F.Delete(storageId, filename); err != nil {
+		log.Println("Error del")
+		Respond(http.StatusBadRequest, errors.New("Error"), w)
+		return
+	}
+
+	if err := h.FilesStorage.DeleteFile(r.Context(), storageId, filename); err != nil {
+		log.Println("Deleting file error", err)
+		Respond(http.StatusBadRequest, errors.New("Error"), w)
+		return
+	}
+
+	Respond("Successful delete", nil, w)
+
 }
 
 func (h *Handler) GetFile(w http.ResponseWriter, r *http.Request) {
@@ -203,12 +191,13 @@ func (h *Handler) GetFile(w http.ResponseWriter, r *http.Request) {
 	storageId := h.Sessions.GetIdStorage(sessionId)
 
 	filename := r.PathValue("id")
-	e, err := h.FilesStorage.SelectFile(context.Background(), storageId, filename)
-	defer e.F.Close()
+	e, err := h.FilesStorage.SelectFile(r.Context(), storageId, filename)
 	if err != nil {
-		_, _ = fmt.Fprint(w, "Get failed")
+		log.Println("Get failed")
+		Respond(http.StatusBadRequest, errors.New("Error"), w)
 		return
 	}
+	defer e.F.Close()
 
 	w.Header().Set("Content-Disposition", "attachment; filename="+e.Filename)
 	w.Header().Set("Content-Type", r.Header.Get("Content-Type"))
@@ -216,6 +205,7 @@ func (h *Handler) GetFile(w http.ResponseWriter, r *http.Request) {
 	_, err = io.Copy(w, e.F)
 	if err != nil {
 		log.Println("error send file to user: ", err)
+		Respond(http.StatusBadRequest, errors.New("Error"), w)
 	}
 
 }
@@ -236,13 +226,16 @@ func (h *Handler) AddLinkForFile(w http.ResponseWriter, r *http.Request) {
 
 	err = json.Unmarshal(s, &l)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		Respond(http.StatusBadRequest, errors.New("Error"), w)
+		return
 	}
 	sessionId := r.Header.Get("Session")
 	storageId := h.Sessions.GetIdStorage(sessionId)
 	file, err := h.FiLiInfo.F.Select(storageId, l.Filename)
 	if err != nil {
 		log.Println("no such file: ", err)
+		Respond(http.StatusBadRequest, errors.New("Error"), w)
+		return
 	}
 	link := uuid.NewString()
 	var sqlVisits sql.NullInt16
@@ -264,19 +257,20 @@ func (h *Handler) AddLinkForFile(w http.ResponseWriter, r *http.Request) {
 		sqlLifetime.Valid = false
 	}
 
-	if err := h.FiLiInfo.L.Insert(file_dao.Link{FileID: file.FileID, LinkID: link,
-		NumberOfVisits: sqlVisits, Lifetime: sqlLifetime}); err != nil {
+	if err := h.FiLiInfo.L.Insert(
+		file_dao.Link{
+			FileID:         file.FileID,
+			LinkID:         link,
+			NumberOfVisits: sqlVisits,
+			Lifetime:       sqlLifetime,
+		},
+	); err != nil {
 		log.Println("error insert link: ", err)
-		_, _ = fmt.Fprint(w, "error")
+		Respond(http.StatusBadRequest, errors.New("Error"), w)
+		return
 	}
-	ans, _ := json.Marshal(
-		struct {
-			Answer string
-			Link   string
-		}{
-			Answer: "link created",
-			Link:   "/link/" + link})
-	_, _ = w.Write(ans)
+
+	Respond("/link/"+link, nil, w)
 }
 
 func (h *Handler) GetFileFromLink(w http.ResponseWriter, r *http.Request) {
@@ -285,7 +279,7 @@ func (h *Handler) GetFileFromLink(w http.ResponseWriter, r *http.Request) {
 	linkInfo, err := h.FiLiInfo.L.Select(linkID)
 	if err != nil {
 		log.Println("Error select file", err)
-		_, _ = fmt.Fprint(w, "Link not found")
+		Respond("Link not found", err, w)
 		return
 	}
 	if (linkInfo.NumberOfVisits.Int16 > 0 || !linkInfo.NumberOfVisits.Valid) &&
@@ -294,22 +288,26 @@ func (h *Handler) GetFileFromLink(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			log.Println("error select file:", err)
 		}
-		e, err := h.FilesStorage.SelectFile(context.Background(), file.StorageID, file.Filename)
+		e, err := h.FilesStorage.SelectFile(r.Context(), file.StorageID, file.Filename)
 		defer e.F.Close()
 		if err != nil {
-			_, _ = fmt.Fprint(w, "Get failed")
-		} else {
-			w.Header().Set("Content-Disposition", "attachment; filename="+e.Filename)
-			w.Header().Set("Content-Type", "multipart/form-data")
-
-			//http.ServeContent(w, r, e.Filename, time.Now(), e.F)
-			_, err = io.Copy(w, e.F)
-			if err != nil {
-				log.Println("error send file to user: ", err)
-			}
+			log.Println("Get failed")
+			Respond(http.StatusBadRequest, errors.New("Error"), w)
+			return
 		}
+
+		w.Header().Set("Content-Disposition", "attachment; filename="+e.Filename)
+		w.Header().Set("Content-Type", "multipart/form-data")
+
+		_, err = io.Copy(w, e.F)
+		if err != nil {
+			log.Println("error send file to user: ", err)
+			Respond(http.StatusBadRequest, errors.New("Error"), w)
+			return
+		}
+
 	} else {
-		_, _ = fmt.Fprint(w, "link unreachable")
+		Respond("link unreachable", nil, w)
 		return
 	}
 
@@ -318,6 +316,8 @@ func (h *Handler) GetFileFromLink(w http.ResponseWriter, r *http.Request) {
 		err := h.FiLiInfo.L.Update(linkInfo)
 		if err != nil {
 			log.Println("error update link:", err)
+			Respond(http.StatusBadRequest, errors.New("Error"), w)
+			return
 		}
 	}
 }
@@ -336,22 +336,27 @@ func (h *Handler) DeleteLink(w http.ResponseWriter, r *http.Request) {
 
 	err = json.Unmarshal(s, &l)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		Respond(http.StatusBadRequest, errors.New("Error"), w)
+		return
 	}
+
 	sessionId := r.Header.Get("Session")
 	storageId := h.Sessions.GetIdStorage(sessionId)
 	linkInfo, _ := h.FiLiInfo.L.Select(l.LinkID)
 	file, err := h.FiLiInfo.F.SelectByID(linkInfo.FileID)
 	if errors.Is(err, file_dao.ErrSelect) || file.StorageID != storageId {
 		log.Println(err)
-		fmt.Fprint(w, "Error deleting")
+		Respond(http.StatusBadRequest, errors.New("Error deleting"), w)
 		return
 	}
 
 	if err := h.FiLiInfo.L.Delete(l.LinkID); err != nil {
 		log.Println("error deleting link", err)
+		Respond(http.StatusBadRequest, errors.New("Error"), w)
+		return
 	}
-	_, _ = fmt.Fprint(w, "link was delete")
+
+	Respond("link was delete", nil, w)
 }
 
 func (h *Handler) AuthMiddleware(next http.HandlerFunc) http.HandlerFunc {
@@ -374,9 +379,21 @@ func (h *Handler) AuthMiddleware(next http.HandlerFunc) http.HandlerFunc {
 	}
 }
 
+func Respond(answer any, status error, w http.ResponseWriter) {
+	out, err := json.Marshal(Response{
+		Data:   answer,
+		Status: status,
+	})
+	if err != nil {
+		log.Println("marshal err: ", err)
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	w.Write(out)
+}
+
 func (h *Handler) Mux(mux *http.ServeMux) {
 	mux.HandleFunc("GET /users", h.AuthMiddleware(h.ShowAll))
-	mux.HandleFunc("GET /answer", h.GetAnswer)
 	mux.HandleFunc("POST /user", h.Registration)
 	mux.HandleFunc("GET /user", h.Login)
 	mux.HandleFunc("POST /file", h.AuthMiddleware(h.UploadFile))

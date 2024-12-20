@@ -6,12 +6,13 @@ services:
     networks:
       - backend
     environment:
-      - FISTOLI_MONGO_HOST="mongodb"
-      - FISTOLI_REDIS_ADDR="redis"
-      - FISTOLI_MONGO_PATH="/app/storage/file_storage"
+      - FISTOLI_MONGO_HOST=mongodb
+      - FISTOLI_REDIS_ADDR=redis:6379
+      - FISTOLI_MONGO_PATH=/app/storages
     depends_on:
       - mongodb
-      - sessions
+      - redis
+      - postgres
 
   mongodb:
     image: mongo:latest
@@ -29,12 +30,30 @@ services:
     ports:
       - "6379:6379"
     command: ["redis-server", "--appendonly", "yes"]
+    volumes:
+      - redis_data:/data/db
+    networks:
+      - backend
+
+  postgres:
+    image: postgres:latest
+    restart: always
+    shm_size: 128mb
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/data/db
+    environment:
+      POSTGRES_USER: server
+      POSTGRES_PASSWORD: mysecretpassword
+      POSTGRES_DB: fistoli
     networks:
       - backend
 
 volumes:
   mongodb_data:
   redis_data:
+  postgres_data:
 
 networks:
   backend:

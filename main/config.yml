@@ -15,8 +15,13 @@ redis:
   timeout: 5
 
 postgres:
-  user: "fistoli"
-  password: "password"
-  dbName: "filesDAO"
+  user: "server"
+  password: "mysecretpassword"
+  host: "postgres"
+  port: "5432"
+  dbName: "fistoli"
   sslMode: "disable"
   driverName: "postgres"
+
+migrate:
+  source: "./migrations"

@@ -12,6 +12,10 @@ var (
 	SessionErr = errors.New("Session not found ")
 )
 
+const (
+	SessionExists = 86400
+)
+
 type Session interface {
 	StartSession(login, idStorage string) (string, error)
 	DestroySession(sessionId string) error
@@ -73,7 +77,7 @@ func (s *Service) StartSession(login, idStorage string) (string, error) {
 	if id, f := s.Val.Exists(login); f {
 		return id, nil
 	}
-	sessionId := s.Val.Set(Provider{login, idStorage, time.Now().Unix() + 86400})
+	sessionId := s.Val.Set(Provider{login, idStorage, time.Now().Unix() + SessionExists})
 	return sessionId, nil
 }
 
@@ -102,7 +106,7 @@ func (s *Service) CheckSession(sessionId string) (bool, error) {
 func (s *Service) SessionRefresh(sessionId string) (string, error) {
 
 	val, _ := s.Val.Get(sessionId)
-	val.Lifetime = time.Now().Unix() + 86400
+	val.Lifetime = time.Now().Unix() + SessionExists
 	s.Val.Set(val)
 	if err := s.DestroySession(sessionId); err != nil {
 		log.Println(err)

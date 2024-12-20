@@ -27,7 +27,7 @@ type LinkDB struct {
 }
 
 func (dao *LinkDB) Select(linkID string) (Link, error) {
-	rows := dao.Db.QueryRow("select * from Links where linkID=$1", linkID)
+	rows := dao.Db.QueryRow("select (fileid, linkid, numberofvisits, lifetime) from Links where linkID=$1", linkID)
 
 	l := Link{}
 
@@ -42,7 +42,7 @@ func (dao *LinkDB) Select(linkID string) (Link, error) {
 }
 
 func (dao *LinkDB) SelectAllLinks(fileID string) ([]Link, error) {
-	rows, err := dao.Db.Query("select * from Links where fileID=$1", fileID)
+	rows, err := dao.Db.Query("select (fileid, linkid, numberofvisits, lifetime) from Links where fileID=$1", fileID)
 	if err != nil {
 		log.Println(err)
 	}

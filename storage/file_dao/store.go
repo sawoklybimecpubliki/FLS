@@ -73,7 +73,7 @@ func NewClient(cfg Config) (*sql.DB, error) {
 }
 
 func (s *FileDB) SelectALL() {
-	rows, err := s.Db.Query("select * from Files")
+	rows, err := s.Db.Query("select (storageid, file, fileid) from Files")
 	if err != nil {
 		log.Println(err)
 	}
@@ -88,13 +88,11 @@ func (s *FileDB) SelectALL() {
 		}
 		product = append(product, p)
 	}
-	for _, p := range product {
-		fmt.Println(p.StorageID, p.Filename, p.FileID)
-	}
+
 }
 
 func (s *FileDB) Select(idStorage, filename string) (Product, error) {
-	rows := s.Db.QueryRow("select * from Files WHERE storageID=$1 AND file=$2", idStorage, filename)
+	rows := s.Db.QueryRow("select (storageid, file, fileid) from Files WHERE storageID=$1 AND file=$2", idStorage, filename)
 
 	p := Product{}
 
@@ -104,12 +102,11 @@ func (s *FileDB) Select(idStorage, filename string) (Product, error) {
 		return Product{}, ErrSelect
 	}
 
-	fmt.Println(p.StorageID, p.Filename, p.FileID)
 	return p, nil
 }
 
 func (s *FileDB) SelectByID(fileId string) (Product, error) {
-	rows := s.Db.QueryRow("select * from Files WHERE fileID=$1", fileId)
+	rows := s.Db.QueryRow("select (storageid, file, fileid) from Files WHERE fileID=$1", fileId)
 
 	p := Product{}
 
@@ -119,7 +116,6 @@ func (s *FileDB) SelectByID(fileId string) (Product, error) {
 		return Product{}, err
 	}
 
-	fmt.Println(p.StorageID, p.Filename, p.FileID)
 	return p, nil
 }
 

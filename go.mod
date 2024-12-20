@@ -5,11 +5,12 @@ go 1.23.0
 require (
 	github.com/go-redis/redis v6.15.9+incompatible
 	github.com/golang-jwt/jwt v3.2.2+incompatible
+	github.com/golang-migrate/migrate/v4 v4.18.3
 	github.com/google/uuid v1.6.0
 	github.com/lib/pq v1.10.9
 	github.com/spf13/viper v1.20.1
 	go.mongodb.org/mongo-driver v1.17.3
-	golang.org/x/crypto v0.32.0
+	golang.org/x/crypto v0.36.0
 )
 
 require (
@@ -17,6 +18,8 @@ require (
 	github.com/go-viper/mapstructure/v2 v2.2.1 // indirect
 	github.com/golang/snappy v0.0.4 // indirect
 	github.com/google/go-cmp v0.7.0 // indirect
+	github.com/hashicorp/errwrap v1.1.0 // indirect
+	github.com/hashicorp/go-multierror v1.1.1 // indirect
 	github.com/klauspost/compress v1.16.7 // indirect
 	github.com/montanaflynn/stats v0.7.1 // indirect
 	github.com/onsi/ginkgo v1.16.5 // indirect

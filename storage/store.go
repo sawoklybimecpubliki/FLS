@@ -11,7 +11,7 @@ type Database interface {
 	AddNewUser(ctx context.Context, u User) error
 	DeleteUser(ctx context.Context, id string) error
 	All(ctx context.Context) ([]User, error)
-	Authentication(ctx context.Context, u User) (string, error)
+	Authentication(ctx context.Context, u User) error
 }
 
 type User struct {
