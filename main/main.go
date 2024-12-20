@@ -81,8 +81,14 @@ func run() error {
 		}
 	}(linksDAO.Db)
 
-	hand := api.Handler{Users: &store, FilesStorage: &filestore, Sessions: &sessionStore,
-		FiLiInfo: file_dao.FiLiInfo{F: &filesDAO, L: &linksDAO}}
+	hand := api.Handler{
+		App: api.Service{
+			Users:        &store,
+			FilesStorage: &filestore,
+			FiLiInfo:     file_dao.FiLiInfo{F: &filesDAO, L: &linksDAO},
+		},
+		Sessions: &sessionStore,
+	}
 
 	migrateDB(filesDAO.Db, cfg.Postgres.DBName, cfg.Migrate)
 

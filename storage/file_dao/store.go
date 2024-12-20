@@ -92,7 +92,7 @@ func (s *FileDB) SelectALL() {
 }
 
 func (s *FileDB) Select(idStorage, filename string) (Product, error) {
-	rows := s.Db.QueryRow("select (storageid, file, fileid) from Files WHERE storageID=$1 AND file=$2", idStorage, filename)
+	rows := s.Db.QueryRow("select storageid, file, fileid from Files WHERE storageID=$1 AND file=$2", idStorage, filename)
 
 	p := Product{}
 
@@ -106,7 +106,7 @@ func (s *FileDB) Select(idStorage, filename string) (Product, error) {
 }
 
 func (s *FileDB) SelectByID(fileId string) (Product, error) {
-	rows := s.Db.QueryRow("select (storageid, file, fileid) from Files WHERE fileID=$1", fileId)
+	rows := s.Db.QueryRow("select storageid, file, fileid from Files WHERE fileID=$1", fileId)
 
 	p := Product{}
 
