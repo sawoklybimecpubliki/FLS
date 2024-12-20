@@ -73,7 +73,7 @@ func (s *Service) StartSession(login, idStorage string) (string, error) {
 	if id, f := s.Val.Exists(login); f {
 		return id, nil
 	}
-	sessionId := s.Val.Set(Provider{login, idStorage, time.Now().Unix() + 120})
+	sessionId := s.Val.Set(Provider{login, idStorage, time.Now().Unix() + 86400})
 	return sessionId, nil
 }
 
@@ -102,7 +102,7 @@ func (s *Service) CheckSession(sessionId string) (bool, error) {
 func (s *Service) SessionRefresh(sessionId string) (string, error) {
 
 	val, _ := s.Val.Get(sessionId)
-	val.Lifetime = time.Now().Unix() + 120
+	val.Lifetime = time.Now().Unix() + 86400
 	s.Val.Set(val)
 	if err := s.DestroySession(sessionId); err != nil {
 		log.Println(err)

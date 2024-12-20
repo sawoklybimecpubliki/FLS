@@ -207,15 +207,17 @@ func (h *Handler) GetFile(w http.ResponseWriter, r *http.Request) {
 	defer e.F.Close()
 	if err != nil {
 		_, _ = fmt.Fprint(w, "Get failed")
-	} else {
-		w.Header().Set("Content-Disposition", "attachment; filename="+e.Filename)
-		w.Header().Set("Content-Type", r.Header.Get("Content-Type"))
-
-		_, err = io.Copy(w, e.F)
-		if err != nil {
-			log.Println("error send file to user: ", err)
-		}
+		return
 	}
+
+	w.Header().Set("Content-Disposition", "attachment; filename="+e.Filename)
+	w.Header().Set("Content-Type", r.Header.Get("Content-Type"))
+
+	_, err = io.Copy(w, e.F)
+	if err != nil {
+		log.Println("error send file to user: ", err)
+	}
+
 }
 
 func (h *Handler) AddLinkForFile(w http.ResponseWriter, r *http.Request) {

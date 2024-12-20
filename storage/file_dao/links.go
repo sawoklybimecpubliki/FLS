@@ -27,7 +27,7 @@ type LinkDB struct {
 }
 
 func (dao *LinkDB) Select(linkID string) (Link, error) {
-	rows := dao.Db.QueryRow("select * from Links WHERE linkID=$1", linkID)
+	rows := dao.Db.QueryRow("select * from Links where linkID=$1", linkID)
 
 	l := Link{}
 
@@ -42,7 +42,7 @@ func (dao *LinkDB) Select(linkID string) (Link, error) {
 }
 
 func (dao *LinkDB) SelectAllLinks(fileID string) ([]Link, error) {
-	rows, err := dao.Db.Query("select * from Links WHERE fileID=$1", fileID)
+	rows, err := dao.Db.Query("select * from Links where fileID=$1", fileID)
 	if err != nil {
 		log.Println(err)
 	}
@@ -77,7 +77,7 @@ func (dao *LinkDB) Insert(l Link) error {
 }
 
 func (dao *LinkDB) Update(l Link) error {
-	_, err := dao.Db.Exec("update Links set numberOfVisits=$1  WHERE linkID=$2",
+	_, err := dao.Db.Exec("update Links set numberOfVisits=$1 where linkID=$2",
 		l.NumberOfVisits, l.LinkID)
 	if err != nil {
 		log.Println("error exec: ", err)
@@ -87,7 +87,7 @@ func (dao *LinkDB) Update(l Link) error {
 }
 
 func (dao *LinkDB) Delete(linkID string) error {
-	_, err := dao.Db.Exec("delete from Links WHERE LinkID=$1", linkID)
+	_, err := dao.Db.Exec("delete from Links where LinkID=$1", linkID)
 	if err != nil {
 		log.Println("error exec: ", err)
 		return ErrDelete
@@ -96,7 +96,7 @@ func (dao *LinkDB) Delete(linkID string) error {
 }
 
 func (dao *LinkDB) DeleteAllLinks(fileID string) error {
-	_, err := dao.Db.Exec("delete from Links WHERE fileID=$1", fileID)
+	_, err := dao.Db.Exec("delete from Links where fileID=$1", fileID)
 	if err != nil {
 		log.Println("error exec: ", err)
 		return ErrDelete

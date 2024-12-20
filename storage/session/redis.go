@@ -50,7 +50,7 @@ func (r *SessionStore) Set(p Provider) string {
 		return ""
 	}
 
-	r.R.Set(sessionId, jsonBytes, 310)
+	r.R.Set(sessionId, jsonBytes, 25*time.Hour)
 	return sessionId
 }
 
