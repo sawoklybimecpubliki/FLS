@@ -1,0 +1,16 @@
+app:
+  connectionTimeoutSec: 10
+
+mongo:
+  host: localhost
+  port: 27017
+  username: mongoadmin
+  password: mongoadmin
+  dbName: filestorage
+  usersCollection: users
+
+redis:
+  host: localhost
+  port: 6379
+  password: redisadmin
+  sessionexpirationhours: 24

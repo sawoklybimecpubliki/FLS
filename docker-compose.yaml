@@ -1,60 +1,116 @@
 services:
-  app:
-    build: .
-    ports:
-      - "80:80"
-    networks:
-      - backend
-    environment:
-      - FISTOLI_MONGO_HOST=mongodb
-      - FISTOLI_REDIS_ADDR=redis:6379
-      - FISTOLI_MONGO_PATH=/app/storages
+  apigw:
+    build:
+      context: ./apigw
+      dockerfile: Dockerfile
     depends_on:
-      - mongodb
-      - redis
+#      - fls
+      - us
+    ports:
+      - "8080:8080"
+    networks:
+      - public
+      - internal
+
+  fls:
+    build:
+      context: ./fls
+      dockerfile: Dockerfile
+    depends_on:
       - postgres
-
-  mongodb:
-    image: mongo:latest
-    restart: always
-    ports:
-      - "27017:27017"
-    volumes:
-      - mongodb_data:/data/db
+      - redis
+      - mongo
+#      - minio
+    environment:
+      POSTGRES_URL: postgres://user:pass@postgres:5432/dbname?sslmode=disable
+      REDIS_URL: redis://redis:6379
+      MONGO_URL: mongodb://mongo:27017
+#      MINIO_ENDPOINT: http://minio:9000
+#      MINIO_ACCESS_KEY: minioadmin
+#      MINIO_SECRET_KEY: minioadmin
     networks:
-      - backend
+      - internal
 
-  redis:
-    image: redis:latest
-    restart: always
-    ports:
-      - "6379:6379"
-    command: ["redis-server", "--appendonly", "yes"]
-    volumes:
-      - redis_data:/data/db
+  us:
+    build:
+      context: ./us
+      dockerfile: Dockerfile
+    depends_on:
+      - redis
+      - mongo
+    environment:
+      US_MONGO_HOST: mongo
+      US_MONGO_PORT: 27017
+      US_MONGO_USERNAME: mongoadmin
+      US_MONGO_PASSWORD: mongoadmin
+      US_REDIS_HOST: redis
+      US_REDIS_PORT: 6379
+      US_REDIS_PASSWORD: redisadmin
+
+      POSTGRES_URL: postgres://user:pass@postgres:5432/dbname?sslmode=disable
+      REDIS_URL: redis://redis:6379
+      MONGO_URL: mongodb://mongo:27017
+      MINIO_ENDPOINT: http://minio:9000
+      MINIO_ACCESS_KEY: minioadmin
+      MINIO_SECRET_KEY: minioadmin
     networks:
-      - backend
+      - internal
+
 
   postgres:
-    image: postgres:latest
-    restart: always
-    shm_size: 128mb
-    ports:
-      - "5432:5432"
-    volumes:
-      - postgres_data:/data/db
+    image: postgres:15
     environment:
       POSTGRES_USER: server
       POSTGRES_PASSWORD: mysecretpassword
       POSTGRES_DB: fistoli
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
     networks:
-      - backend
+      - internal
+#
+  redis:
+    image: redis:7
+    ports:
+      - "6379:6379"
+    command: ["redis-server", "--requirepass", "redisadmin"]
+    networks:
+      - internal
+
+  mongo:
+    image: mongo:6
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: mongoadmin
+      MONGO_INITDB_ROOT_PASSWORD: mongoadmin
+    volumes:
+      - mongodata:/data/db
+    networks:
+      - internal
+
+
+#  minio:
+#    image: minio/minio
+#    ports:
+#      - "9000:9000"
+#      - "9001:9001"
+#    environment:
+#      MINIO_ROOT_USER: minioadmin
+#      MINIO_ROOT_PASSWORD: minioadmin
+#    command: server --console-address ":9001" /data
+#    volumes:
+#      - miniodata:/data
+#    networks:
+#      - internal
 
 volumes:
-  mongodb_data:
-  redis_data:
-  postgres_data:
+  pgdata:
+  mongodata:
+  miniodata:
 
 networks:
-  backend:
+  public:
     driver: bridge
+  internal:

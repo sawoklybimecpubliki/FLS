@@ -1,0 +1,14 @@
+app:
+  connectionTimeoutSec: 10
+
+postgres:
+  user: server
+  password: mysecretpassword
+  host: postgres
+  port: 5432
+  dbName: fistoli
+  sslMode: disable
+  driverName: postgres
+
+migrate:
+  source: ./migration
