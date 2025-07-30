@@ -3,14 +3,14 @@ package main
 import (
 	"context"
 	"fmt"
+	"github.com/sawoklybimecpubliki/FLS/us/cmd/api/router"
+	"github.com/sawoklybimecpubliki/FLS/us/internal/core/user"
+	"github.com/sawoklybimecpubliki/FLS/us/internal/foundation"
 	"github.com/spf13/viper"
 	"log"
 	"net/http"
 	"strings"
 	"time"
-	"us/cmd/api/router"
-	"us/internal/core/user"
-	"us/internal/foundation"
 )
 
 func main() {
