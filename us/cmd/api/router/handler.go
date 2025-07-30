@@ -2,14 +2,14 @@ package router
 
 import (
 	"encoding/json"
+	"github.com/sawoklybimecpubliki/FLS/pkg/events"
 	core "github.com/sawoklybimecpubliki/FLS/us/internal/core/user"
 	"net/http"
 )
 
 func APIMux(handler *Handler) *http.ServeMux {
 	mux := http.NewServeMux()
-
-	mux.HandleFunc("POST /register", handler.Register)
+	mux.HandleFunc("POST /register", events.EventMiddleware(handler.Register))
 	mux.HandleFunc("POST /login", handler.Login)
 	mux.HandleFunc("GET /logout", handler.Logout)
 	mux.HandleFunc("GET /auth", handler.AuthCheck)
@@ -45,7 +45,6 @@ func (h *Handler) Register(w http.ResponseWriter, r *http.Request) {
 		Respond(err.Error(), http.StatusBadRequest, w)
 		return
 	}
-
 	Respond("OK", "success", w)
 }
 

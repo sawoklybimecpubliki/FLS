@@ -3,7 +3,7 @@ package router
 import (
 	"encoding/json"
 	"errors"
-	"fls/internal/core"
+	"github.com/sawoklybimecpubliki/FLS/fls/internal/core"
 	"io"
 	"log"
 	"mime/multipart"
