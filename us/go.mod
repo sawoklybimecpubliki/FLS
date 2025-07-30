@@ -1,4 +1,4 @@
-module us
+module github.com/sawoklybimecpubliki/FLS/us
 
 go 1.23.0
 

@@ -1,4 +1,4 @@
-module fls
+module github.com/sawoklybimecpubliki/FLS/fls
 
 go 1.23.0
 

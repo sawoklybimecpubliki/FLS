@@ -2,8 +2,8 @@ package router
 
 import (
 	"encoding/json"
+	core "github.com/sawoklybimecpubliki/FLS/us/internal/core/user"
 	"net/http"
-	core "us/internal/core/user"
 )
 
 func APIMux(handler *Handler) *http.ServeMux {
