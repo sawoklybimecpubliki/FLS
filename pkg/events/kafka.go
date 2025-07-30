@@ -16,7 +16,7 @@ type Event struct {
 }
 
 const topicName = "event"
-const brokerAddr = "kafka:29029" // ВРОДЕ неправильный
+const brokerAddr = "kafka:29092" // ВРОДЕ неправильный
 
 var kafkaConn *kafka.Conn
 
@@ -26,10 +26,10 @@ func init() {
 		var err error
 		kafkaConn, err = kafka.DialLeader(context.Background(), "tcp", brokerAddr, topicName, 0)
 		if err != nil {
-			fmt.Errorf("не удалось подключиться к Kafka (%s): %w", brokerAddr, err)
+			log.Println("не удалось подключиться к Kafka (%s): %w", brokerAddr, err)
 		}
 	})
-
+	log.Println("KAFKA---------------| ", kafkaConn)
 }
 
 func ProduceEvent(conn *kafka.Conn, event *Event) error {
