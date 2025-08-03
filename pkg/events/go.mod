@@ -1,4 +1,4 @@
-module github.com/sawoklybimecpubliki/FLS/pkg/events
+module github.com/sawoklybimecpubliki/FLS/pkg/kafka_events
 
 go 1.23.0
 
