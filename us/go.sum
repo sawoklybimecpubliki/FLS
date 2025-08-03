@@ -42,8 +42,8 @@ github.com/rogpeppe/go-internal v1.9.0 h1:73kH8U+JUqXU8lRuOHeVHaa/SZPifC7BkcraZV
 github.com/rogpeppe/go-internal v1.9.0/go.mod h1:WtVeX8xhTBvf0smdhujwtBcq4Qrzq/fJaraNFVN+nFs=
 github.com/sagikazarmark/locafero v0.7.0 h1:5MqpDsTGNDhY8sGp0Aowyf0qKsPrhewaLSsFaodPcyo=
 github.com/sagikazarmark/locafero v0.7.0/go.mod h1:2za3Cg5rMaTMoG/2Ulr9AwtFaIppKXTRYnozin4aB5k=
-github.com/sawoklybimecpubliki/FLS/pkg/events v0.0.0-20250730103853-0a6f229b8966 h1:fa/bYMNPRfg2fcTU+4FYfbzjmxr/azcyIoanpq5URLY=
-github.com/sawoklybimecpubliki/FLS/pkg/events v0.0.0-20250730103853-0a6f229b8966/go.mod h1:XxnM0/Wie0YlOao15DZHRsktcj642n5rPU3ysXKgXcA=
+github.com/sawoklybimecpubliki/FLS/pkg/events v0.0.0-20250803145818-fe0cd9552d6d h1:CgdkLXcv+Q3YoDl0bwoVtroVIoOp9IIe+Ux6uujemGQ=
+github.com/sawoklybimecpubliki/FLS/pkg/events v0.0.0-20250803145818-fe0cd9552d6d/go.mod h1:XxnM0/Wie0YlOao15DZHRsktcj642n5rPU3ysXKgXcA=
 github.com/segmentio/kafka-go v0.4.48 h1:9jyu9CWK4W5W+SroCe8EffbrRZVqAOkuaLd/ApID4Vs=
 github.com/segmentio/kafka-go v0.4.48/go.mod h1:HjF6XbOKh0Pjlkr5GVZxt6CsjjwnmhVOfURM5KMd8qg=
 github.com/sourcegraph/conc v0.3.0 h1:OQTbbt6P72L20UqAkXXuLOj79LfEanQ+YQFNpLA9ySo=

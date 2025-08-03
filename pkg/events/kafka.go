@@ -16,13 +16,12 @@ type Event struct {
 }
 
 const topicName = "event"
-const brokerAddr = "kafka:29092" // ВРОДЕ неправильный
+const brokerAddr = "kafka:9092" // ВРОДЕ неправильный
 
 var kafkaConn *kafka.Conn
 
 func init() {
 	var once sync.Once
-	time.Sleep(5 * time.Second)
 	log.Println("INIT: ---------------------------------------")
 	once.Do(func() {
 		var err error
