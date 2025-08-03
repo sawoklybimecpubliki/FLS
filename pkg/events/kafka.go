@@ -22,6 +22,8 @@ var kafkaConn *kafka.Conn
 
 func init() {
 	var once sync.Once
+	time.Sleep(5 * time.Second)
+	log.Println("INIT: ---------------------------------------")
 	once.Do(func() {
 		var err error
 		kafkaConn, err = kafka.DialLeader(context.Background(), "tcp", brokerAddr, topicName, 0)

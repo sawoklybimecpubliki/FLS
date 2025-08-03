@@ -38,6 +38,7 @@ services:
     depends_on:
       - redis
       - mongo
+      - kafka
     environment:
       US_MONGO_HOST: mongo
       US_MONGO_PORT: 27017
@@ -96,7 +97,9 @@ services:
       ZOOKEEPER_CLIENT_PORT: 2181
       ZOOKEEPER_TICK_TIME: 2000
     ports:
-      - 22181:2181
+      - 2181:2181
+    networks:
+      - internal
 
   kafka:
     image: confluentinc/cp-kafka:7.4.4
@@ -104,10 +107,12 @@ services:
       - zookeeper
     ports:
       - 29092:29092
+    networks:
+      - internal
     environment:
       KAFKA_BROKER_ID: 1
       KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
-      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092,PLAINTEXT_HOST://localhost:29092
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:29092
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
       KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1

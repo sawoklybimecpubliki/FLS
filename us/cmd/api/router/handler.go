@@ -9,7 +9,8 @@ import (
 
 func APIMux(handler *Handler) *http.ServeMux {
 	mux := http.NewServeMux()
-	mux.HandleFunc("POST /register", events.EventMiddleware(handler.Register))
+
+	mux.HandleFunc("POST /register", events.EventsMiddleware(handler.Register))
 	mux.HandleFunc("POST /login", handler.Login)
 	mux.HandleFunc("GET /logout", handler.Logout)
 	mux.HandleFunc("GET /auth", handler.AuthCheck)
