@@ -2,29 +2,42 @@ package router
 
 import (
 	"encoding/json"
-	"github.com/sawoklybimecpubliki/FLS/pkg/events"
 	core "github.com/sawoklybimecpubliki/FLS/us/internal/core/user"
+	events "github.com/sawoklybimecpubliki/FLS/us/kafka"
+	"log"
 	"net/http"
 )
 
 func APIMux(handler *Handler) *http.ServeMux {
 	mux := http.NewServeMux()
-	mux.HandleFunc("POST /register", events.EventsMiddleware(handler.Register))
-	mux.HandleFunc("POST /login", handler.Login)
+	mux.HandleFunc("POST /register", handler.notify.EventsMiddleware(handler.Register))
+	mux.HandleFunc("POST /login", handler.notify.EventsMiddleware(handler.Login))
 	mux.HandleFunc("GET /logout", handler.Logout)
 	mux.HandleFunc("GET /auth", handler.AuthCheck)
+	mux.HandleFunc("GET /kafka/read", handler.KafkaRead)
 
 	return mux
 }
 
 type Handler struct {
-	app *core.Service
+	app    *core.Service
+	notify *events.ServiceNotify
 }
 
 func NewHandler(service *core.Service) *Handler {
 	return &Handler{
 		app: service,
+		notify: &events.ServiceNotify{
+			BrokerAddr: "kafka:9092",
+			KafkaConn:  events.NewConnection("kafka:9092"),
+		},
 	}
+}
+
+func (h *Handler) KafkaRead(w http.ResponseWriter, r *http.Request) {
+	answer := h.notify.ReceiverEvent(r.Context())
+	log.Println("KAFKA READ:", answer)
+	Respond(answer, http.StatusOK, w)
 }
 
 func (h *Handler) Register(w http.ResponseWriter, r *http.Request) {
