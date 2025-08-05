@@ -10,8 +10,8 @@ import (
 
 func APIMux(handler *Handler) *http.ServeMux {
 	mux := http.NewServeMux()
-	mux.HandleFunc("POST /register", handler.notify.EventsMiddleware(handler.Register))
-	mux.HandleFunc("POST /login", handler.notify.EventsMiddleware(handler.Login))
+	mux.HandleFunc("POST /register", handler.eventService.EventsMiddleware(handler.Register))
+	mux.HandleFunc("POST /login", handler.eventService.EventsMiddleware(handler.Login))
 	mux.HandleFunc("GET /logout", handler.Logout)
 	mux.HandleFunc("GET /auth", handler.AuthCheck)
 	mux.HandleFunc("GET /kafka/read", handler.KafkaRead)
@@ -20,14 +20,14 @@ func APIMux(handler *Handler) *http.ServeMux {
 }
 
 type Handler struct {
-	app    *core.Service
-	notify *events.ServiceNotify
+	app          *core.Service
+	eventService *events.EventService
 }
 
 func NewHandler(service *core.Service) *Handler {
 	return &Handler{
 		app: service,
-		notify: &events.ServiceNotify{
+		eventService: &events.EventService{
 			BrokerAddr: "kafka:9092",
 			KafkaConn:  events.NewConnection("kafka:9092"),
 		},
@@ -35,7 +35,7 @@ func NewHandler(service *core.Service) *Handler {
 }
 
 func (h *Handler) KafkaRead(w http.ResponseWriter, r *http.Request) {
-	answer := h.notify.ReceiverEvent(r.Context())
+	answer := h.eventService.Consume(r.Context())
 	log.Println("KAFKA READ:", answer)
 	Respond(answer, http.StatusOK, w)
 }

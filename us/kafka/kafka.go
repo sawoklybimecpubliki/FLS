@@ -14,7 +14,7 @@ type Event struct {
 	URL string `json:"url"`
 }
 
-type ServiceNotify struct {
+type EventService struct {
 	BrokerAddr string
 	KafkaConn  *kafka.Conn
 }
@@ -56,7 +56,7 @@ func NewConnection(brokerAddr string) *kafka.Conn {
 	log.Println("KAFKA---------------| ", KafkaConn)
 }*/
 
-func (s *ServiceNotify) ProduceEvent(event *Event) error {
+func (s *EventService) ProduceEvent(event *Event) error {
 	eventJSON, err := json.Marshal(event)
 	if err != nil {
 		return fmt.Errorf("ошибка маршалинга JSON: %w", err)
@@ -74,7 +74,7 @@ func (s *ServiceNotify) ProduceEvent(event *Event) error {
 	return nil
 }
 
-func (s *ServiceNotify) ReceiverEvent(ctx context.Context) []string {
+func (s *EventService) Consume(ctx context.Context) []string {
 	r := kafka.NewReader(kafka.ReaderConfig{
 		Brokers:  []string{brokerAddr},
 		Topic:    topicName,
@@ -96,13 +96,12 @@ func (s *ServiceNotify) ReceiverEvent(ctx context.Context) []string {
 
 		if err := r.Close(); err != nil {
 			log.Fatal("failed to close reader:", err)
-			break
 		}
 	}
 	return out
 }
 
-func (s *ServiceNotify) EventsMiddleware(next http.HandlerFunc) http.HandlerFunc {
+func (s *EventService) EventsMiddleware(next http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if err := s.ProduceEvent(&Event{
 			URL: r.URL.Path,
