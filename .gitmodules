@@ -1,6 +1,3 @@
-[submodule "events"]
-	path = FLS-events
-	url = https://github.com/sawoklybimecpubliki/FLS-events.git
 [submodule "FLS-events"]
 	path = FLS-events
 	url = https://github.com/sawoklybimecpubliki/FLS-events.git
