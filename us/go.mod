@@ -5,7 +5,7 @@ go 1.23.0
 require (
 	github.com/google/uuid v1.6.0
 	github.com/redis/go-redis/v9 v9.11.0
-	github.com/sawoklybimecpubliki/FLS-events v0.0.0-20250806172907-845a291a5b1b
+	github.com/sawoklybimecpubliki/FLS-events v0.0.0-20250806184033-f91770d09155
 	github.com/spf13/viper v1.20.1
 	go.mongodb.org/mongo-driver v1.17.4
 	golang.org/x/crypto v0.35.0
@@ -17,10 +17,10 @@ require (
 	github.com/fsnotify/fsnotify v1.8.0 // indirect
 	github.com/go-viper/mapstructure/v2 v2.3.0 // indirect
 	github.com/golang/snappy v0.0.4 // indirect
-	github.com/klauspost/compress v1.16.7 // indirect
+	github.com/klauspost/compress v1.18.0 // indirect
 	github.com/montanaflynn/stats v0.7.1 // indirect
 	github.com/pelletier/go-toml/v2 v2.2.3 // indirect
-	github.com/pierrec/lz4/v4 v4.1.15 // indirect
+	github.com/pierrec/lz4/v4 v4.1.22 // indirect
 	github.com/sagikazarmark/locafero v0.7.0 // indirect
 	github.com/segmentio/kafka-go v0.4.48 // indirect
 	github.com/sourcegraph/conc v0.3.0 // indirect
