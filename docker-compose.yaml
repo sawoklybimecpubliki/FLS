@@ -64,6 +64,8 @@ services:
     depends_on:
       - mongo
       - kafka
+    networks:
+      - internal
 
   postgres:
     image: postgres:15
