@@ -36,6 +36,9 @@ func NewHandler(service *core.Service) *Handler {
 func (h *Handler) KafkaRead(w http.ResponseWriter, r *http.Request) {
 	answer := events.ViewCount()
 	log.Println("KAFKA READ:", answer)
+	for i, tmp := range answer {
+		log.Println(i, ": ", tmp)
+	}
 	Respond(answer, http.StatusOK, w)
 }
 
