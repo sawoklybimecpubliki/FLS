@@ -2,8 +2,8 @@ package router
 
 import (
 	"encoding/json"
+	"github.com/sawoklybimecpubliki/FLS-events/events"
 	core "github.com/sawoklybimecpubliki/FLS/us/internal/core/user"
-	events "github.com/sawoklybimecpubliki/FLS/us/kafka"
 	"log"
 	"net/http"
 )
@@ -15,19 +15,18 @@ func APIMux(handler *Handler) *http.ServeMux {
 	mux.HandleFunc("GET /logout", handler.Logout)
 	mux.HandleFunc("GET /auth", handler.AuthCheck)
 	mux.HandleFunc("GET /kafka/read", handler.KafkaRead)
-
 	return mux
 }
 
 type Handler struct {
 	app          *core.Service
-	eventService *events.EventService
+	eventService *events.Service
 }
 
 func NewHandler(service *core.Service) *Handler {
 	return &Handler{
 		app: service,
-		eventService: &events.EventService{
+		eventService: &events.Service{
 			BrokerAddr: "kafka:9092",
 			KafkaConn:  events.NewConnection("kafka:9092"),
 		},
@@ -35,7 +34,7 @@ func NewHandler(service *core.Service) *Handler {
 }
 
 func (h *Handler) KafkaRead(w http.ResponseWriter, r *http.Request) {
-	answer := h.eventService.Consume(r.Context())
+	answer := events.ViewCount()
 	log.Println("KAFKA READ:", answer)
 	Respond(answer, http.StatusOK, w)
 }
