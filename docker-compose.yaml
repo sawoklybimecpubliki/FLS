@@ -57,6 +57,13 @@ services:
     networks:
       - internal
 
+  events:
+    build:
+      context: ./FLS-events
+      dockerfile: Dockerfile
+    depends_on:
+      - mongo
+      - kafka
 
   postgres:
     image: postgres:15
