@@ -8,6 +8,7 @@ mongo:
   password: mongoadmin
   dbName: filestorage
   usersCollection: users
+  statsCollection: stats
 
 redis:
   host: localhost

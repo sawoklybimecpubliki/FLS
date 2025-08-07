@@ -21,9 +21,14 @@ type SessionStorer interface {
 	DeleteSession(ctx context.Context, ses Session) error
 }
 
+type StatStorer interface {
+	GetStat(ctx context.Context, stat Stat) (Stat, error)
+}
+
 type Service struct {
 	userStore    Storer
 	sessionStore SessionStorer
+	statStore    StatStorer
 }
 
 func NewService(userStore Storer, sessionStore SessionStorer) *Service {
@@ -99,4 +104,9 @@ func (s *Service) Logout(ctx context.Context, session Session) error {
 	}
 
 	return nil
+}
+
+func (s *Service) GetStat(ctx context.Context, stat Stat) (Stat, error) {
+	s.statStore.GetStat(ctx, stat)
+	return Stat{}, nil
 }

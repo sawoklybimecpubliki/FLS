@@ -10,10 +10,16 @@ import (
 )
 
 type Store struct {
-	c *mongo.Collection
+	c     *mongo.Collection
+	stats *mongo.Collection
 }
 
-func NewStore(collection *mongo.Collection) (*Store, error) {
+type Stat struct {
+	Name   string
+	Number int
+}
+
+func NewStore(collection *mongo.Collection, statsCollection *mongo.Collection) (*Store, error) {
 	mod := mongo.IndexModel{
 		Keys:    bson.M{"login": 1},
 		Options: options.Index().SetUnique(true),
@@ -23,8 +29,17 @@ func NewStore(collection *mongo.Collection) (*Store, error) {
 		return nil, fmt.Errorf("could not create index: %w", err)
 	}
 
+	mod = mongo.IndexModel{
+		Keys: bson.M{"login": 1},
+	}
+
+	if _, err := statsCollection.Indexes().CreateOne(context.TODO(), mod); err != nil {
+		return nil, fmt.Errorf("could not create index: %w", err)
+	}
+
 	return &Store{
-		c: collection,
+		c:     collection,
+		stats: statsCollection,
 	}, nil
 }
 
@@ -88,6 +103,17 @@ func (db *Store) DeleteUser(ctx context.Context, u User) error {
 		return nil
 	}
 	return nil
+}
+
+func (db *Store) GetStat(ctx context.Context, s Stat) (Stat, error) {
+	existingStat := Stat{}
+
+	err := db.stats.FindOne(ctx, bson.M{"name": s.Name}).Decode(&existingStat)
+	if err != nil {
+		return Stat{}, fmt.Errorf("could not find user: %w", err)
+	}
+
+	return existingStat, nil
 }
 
 /*func (db *Store) All(ctx context.Context) ([]User, error) {

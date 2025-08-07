@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"github.com/sawoklybimecpubliki/FLS-events/events"
 	core "github.com/sawoklybimecpubliki/FLS/us/internal/core/user"
+	"log"
 	"net/http"
 )
 
@@ -33,7 +34,14 @@ func NewHandler(service *core.Service) *Handler {
 }
 
 func (h *Handler) KafkaRead(w http.ResponseWriter, r *http.Request) {
-	Respond("KK", http.StatusOK, w)
+	stat, err := h.app.GetStat(r.Context(), core.Stat{
+		Name: "/login",
+	})
+	if err != nil {
+		log.Println("error get stat:", err)
+	}
+	log.Println("STAT::", stat)
+	Respond(stat, http.StatusOK, w)
 }
 
 func (h *Handler) Register(w http.ResponseWriter, r *http.Request) {

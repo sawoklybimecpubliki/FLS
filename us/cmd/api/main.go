@@ -56,7 +56,8 @@ func run() error {
 		redisClient,
 	)
 
-	userStore, err := user.NewStore(mongoClient.Database(cfg.Mongo.DBName).Collection(cfg.Mongo.UsersCollection))
+	userStore, err := user.NewStore(mongoClient.Database(cfg.Mongo.DBName).Collection(cfg.Mongo.UsersCollection),
+		mongoClient.Database(cfg.Mongo.DBName).Collection(cfg.Mongo.StatsCollection))
 	if err != nil {
 		return err
 	}
@@ -106,6 +107,7 @@ type Config struct {
 		Password        string
 		DBName          string
 		UsersCollection string
+		StatsCollection string
 	}
 
 	Redis struct {
