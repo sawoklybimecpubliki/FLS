@@ -56,13 +56,15 @@ func run() error {
 		redisClient,
 	)
 
-	userStore, err := user.NewStore(mongoClient.Database(cfg.Mongo.DBName).Collection(cfg.Mongo.UsersCollection),
-		mongoClient.Database(cfg.Mongo.DBName).Collection(cfg.Mongo.StatsCollection))
+	userStore, err := user.NewStore(mongoClient.Database(cfg.Mongo.DBName).Collection(cfg.Mongo.UsersCollection))
+
+	statStore, err := user.NewStore(mongoClient.Database(cfg.Mongo.DBName).Collection(cfg.Mongo.StatsCollection))
+
 	if err != nil {
 		return err
 	}
 
-	userService := user.NewService(userStore, sessionStore)
+	userService := user.NewService(userStore, sessionStore, statStore)
 
 	handler := router.NewHandler(userService)
 

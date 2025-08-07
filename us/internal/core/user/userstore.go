@@ -19,7 +19,7 @@ type Stat struct {
 	Number int
 }
 
-func NewStore(collection *mongo.Collection, statsCollection *mongo.Collection) (*Store, error) {
+func NewStore(collection *mongo.Collection) (*Store, error) {
 	mod := mongo.IndexModel{
 		Keys:    bson.M{"login": 1},
 		Options: options.Index().SetUnique(true),
@@ -29,17 +29,8 @@ func NewStore(collection *mongo.Collection, statsCollection *mongo.Collection) (
 		return nil, fmt.Errorf("could not create index: %w", err)
 	}
 
-	mod = mongo.IndexModel{
-		Keys: bson.M{"login": 1},
-	}
-
-	if _, err := statsCollection.Indexes().CreateOne(context.TODO(), mod); err != nil {
-		return nil, fmt.Errorf("could not create index: %w", err)
-	}
-
 	return &Store{
-		c:     collection,
-		stats: statsCollection,
+		c: collection,
 	}, nil
 }
 

@@ -31,10 +31,11 @@ type Service struct {
 	statStore    StatStorer
 }
 
-func NewService(userStore Storer, sessionStore SessionStorer) *Service {
+func NewService(userStore Storer, sessionStore SessionStorer, statStore StatStorer) *Service {
 	return &Service{
 		userStore:    userStore,
 		sessionStore: sessionStore,
+		statStore:    statStore,
 	}
 }
 
@@ -107,6 +108,10 @@ func (s *Service) Logout(ctx context.Context, session Session) error {
 }
 
 func (s *Service) GetStat(ctx context.Context, stat Stat) (Stat, error) {
-	s.statStore.GetStat(ctx, stat)
-	return Stat{}, nil
+	stat, err := s.statStore.GetStat(ctx, stat)
+	if err != nil {
+		log.Println("error get stat", err)
+		return Stat{}, err
+	}
+	return stat, nil
 }
