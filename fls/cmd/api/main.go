@@ -37,8 +37,6 @@ func run(doneCh chan bool, wg *sync.WaitGroup) error {
 		return err
 	}
 
-	log.Printf("config: %+v", cfg)
-
 	// PGS Client
 	_, cancel := context.WithTimeout(context.Background(), time.Duration(cfg.App.ConnectionTimeoutSec)*time.Second)
 	defer cancel()

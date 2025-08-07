@@ -2,7 +2,6 @@ package core
 
 import (
 	"database/sql"
-	"fmt"
 	"log"
 	"time"
 )
@@ -22,7 +21,6 @@ func (dao *LinkDB) Select(linkID string) (Link, error) {
 		return Link{}, err
 	}
 
-	fmt.Println(l)
 	return l, nil
 }
 
@@ -91,7 +89,6 @@ func (dao *LinkDB) DeleteAllLinks(fileID string) error {
 
 func (dao *LinkDB) DeleteInvalidLinks() error {
 	t := time.Unix(time.Now().Unix(), 0)
-	log.Println("HERE: ", t)
 	_, err := dao.Db.Exec("delete from Links where lifetime<=$1 or numberofvisits=0", t)
 	if err != nil {
 		log.Println("error exec: ", err)

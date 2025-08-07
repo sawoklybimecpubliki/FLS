@@ -76,7 +76,6 @@ func NewMongoClient(ctx context.Context, cfg MongoConfig) (*mongo.Client, error)
 }
 
 func (db *Store) InsertUser(ctx context.Context, u User) error {
-	log.Println("user: ", u)
 	_, err := db.c.InsertOne(ctx, u)
 	if err != nil {
 		log.Println("error insert", err)

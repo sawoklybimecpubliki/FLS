@@ -38,7 +38,6 @@ func (h *Handler) KafkaRead(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Println("error get stat:", err)
 	}
-	log.Println("STAT::", stat)
 	Respond(stat, http.StatusOK, w)
 }
 

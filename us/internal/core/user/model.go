@@ -23,7 +23,6 @@ func (u *User) Encrypt() error {
 }
 
 func (u *User) CheckPassword(existingUser User) error {
-	log.Println("check pass", existingUser.Password, u.Password)
 	return bcrypt.CompareHashAndPassword([]byte(existingUser.Password), []byte(u.Password))
 }
 

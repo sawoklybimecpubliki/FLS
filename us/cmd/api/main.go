@@ -25,8 +25,6 @@ func run() error {
 		return err
 	}
 
-	log.Printf("config: %+v", cfg)
-
 	// Mongo Client
 	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(cfg.App.ConnectionTimeoutSec)*time.Second)
 	defer cancel()

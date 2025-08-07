@@ -47,7 +47,6 @@ func (s *Service) findExistingUser(ctx context.Context, u User) error {
 }
 
 func (s *Service) Register(ctx context.Context, user User) error {
-	log.Println("user", user)
 	if err := user.Encrypt(); err != nil {
 		return fmt.Errorf("error encrypting password: %w", err)
 	}
