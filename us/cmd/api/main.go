@@ -58,9 +58,15 @@ func run() error {
 
 	userStore, err := user.NewStore(mongoClient.Database(cfg.Mongo.DBName).Collection(cfg.Mongo.UsersCollection))
 
+	if err != nil {
+		log.Println("Error new store", err)
+		return err
+	}
+
 	statStore, err := user.NewStatStore(mongoClient.Database(cfg.Mongo.DBName).Collection(cfg.Mongo.StatsCollection))
 
 	if err != nil {
+		log.Println("Error new store", err)
 		return err
 	}
 

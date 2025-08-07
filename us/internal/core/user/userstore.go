@@ -44,7 +44,7 @@ func NewStatStore(collection *mongo.Collection) (*Store, error) {
 	}
 
 	return &Store{
-		c: collection,
+		stats: collection,
 	}, nil
 }
 
@@ -110,37 +110,19 @@ func (db *Store) DeleteUser(ctx context.Context, u User) error {
 	return nil
 }
 
-func (db *Store) GetStat(ctx context.Context, s Stat) (Stat, error) {
-	existingStat := Stat{}
-
-	err := db.stats.FindOne(ctx, bson.M{"name": s.Name}).Decode(&existingStat)
+func (db *Store) GetStats(ctx context.Context) ([]Stat, error) {
+	existingStat := []Stat{}
+	cursor, err := db.stats.Find(ctx, bson.D{})
+	for cursor.Next(ctx) {
+		var stat Stat
+		if err := cursor.Decode(&stat); err != nil {
+			log.Fatal(err)
+		}
+		existingStat = append(existingStat, stat)
+	}
 	if err != nil {
-		return Stat{}, fmt.Errorf("could not find user: %w", err)
+		return []Stat{}, fmt.Errorf("could not find user: %w", err)
 	}
 
 	return existingStat, nil
 }
-
-/*func (db *Store) All(ctx context.Context) ([]User, error) {
-	var u []User
-	cur, err := db.C.Find(ctx, bson.D{})
-
-	if err != nil {
-		return nil, bsoncore.ErrElementNotFound
-	}
-
-	for cur.Next(ctx) {
-		var elem User
-		err := cur.Decode(&elem)
-		if err != nil {
-			log.Println("Decoding Failed")
-		}
-		u = append(u, elem)
-	}
-
-	if err := cur.Err(); err != nil {
-		log.Println("cur: ", err)
-	}
-
-	return u, err
-}*/

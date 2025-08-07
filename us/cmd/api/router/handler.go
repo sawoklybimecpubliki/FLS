@@ -34,9 +34,7 @@ func NewHandler(service *core.Service) *Handler {
 }
 
 func (h *Handler) KafkaRead(w http.ResponseWriter, r *http.Request) {
-	stat, err := h.app.GetStat(r.Context(), core.Stat{
-		Name: "/login",
-	})
+	stat, err := h.app.GetStats(r.Context())
 	if err != nil {
 		log.Println("error get stat:", err)
 	}

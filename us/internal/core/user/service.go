@@ -22,7 +22,7 @@ type SessionStorer interface {
 }
 
 type StatStorer interface {
-	GetStat(ctx context.Context, stat Stat) (Stat, error)
+	GetStats(ctx context.Context) ([]Stat, error)
 }
 
 type Service struct {
@@ -107,11 +107,11 @@ func (s *Service) Logout(ctx context.Context, session Session) error {
 	return nil
 }
 
-func (s *Service) GetStat(ctx context.Context, stat Stat) (Stat, error) {
-	stat, err := s.statStore.GetStat(ctx, stat)
+func (s *Service) GetStats(ctx context.Context) ([]Stat, error) {
+	result, err := s.statStore.GetStats(ctx)
 	if err != nil {
 		log.Println("error get stat", err)
-		return Stat{}, err
+		return []Stat{}, err
 	}
-	return stat, nil
+	return result, nil
 }
