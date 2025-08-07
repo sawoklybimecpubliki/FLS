@@ -61,6 +61,11 @@ services:
     build:
       context: ./FLS-events
       dockerfile: Dockerfile
+    environment:
+      US_MONGO_HOST: mongo
+      US_MONGO_PORT: 27017
+      US_MONGO_USERNAME: mongoadmin
+      US_MONGO_PASSWORD: mongoadmin
     depends_on:
       - mongo
       - kafka
