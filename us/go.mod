@@ -5,7 +5,7 @@ go 1.23.0
 require (
 	github.com/google/uuid v1.6.0
 	github.com/redis/go-redis/v9 v9.11.0
-	github.com/sawoklybimecpubliki/FLS-events v0.0.0-20250807135818-1df2005fdd81
+	github.com/sawoklybimecpubliki/FLS-events v0.0.0-20250807145308-861064bb6b5c
 	github.com/spf13/viper v1.20.1
 	go.mongodb.org/mongo-driver v1.17.4
 	golang.org/x/crypto v0.35.0
