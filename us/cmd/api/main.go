@@ -58,7 +58,7 @@ func run() error {
 
 	userStore, err := user.NewStore(mongoClient.Database(cfg.Mongo.DBName).Collection(cfg.Mongo.UsersCollection))
 
-	statStore, err := user.NewStore(mongoClient.Database(cfg.Mongo.DBName).Collection(cfg.Mongo.StatsCollection))
+	statStore, err := user.NewStatStore(mongoClient.Database(cfg.Mongo.DBName).Collection(cfg.Mongo.StatsCollection))
 
 	if err != nil {
 		return err

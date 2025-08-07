@@ -34,6 +34,20 @@ func NewStore(collection *mongo.Collection) (*Store, error) {
 	}, nil
 }
 
+func NewStatStore(collection *mongo.Collection) (*Store, error) {
+	mod := mongo.IndexModel{
+		Keys: bson.M{"name": 1},
+	}
+
+	if _, err := collection.Indexes().CreateOne(context.TODO(), mod); err != nil {
+		return nil, fmt.Errorf("could not create index: %w", err)
+	}
+
+	return &Store{
+		c: collection,
+	}, nil
+}
+
 type MongoConfig struct {
 	Host     string
 	Port     string
